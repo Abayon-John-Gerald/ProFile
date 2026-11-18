@@ -166,6 +166,63 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     }
   }
 
+    // --- NEW: DIRECT PRINT ---
+  window.printResume = function() {
+    window.print();
+  }
+
+    // --- NEW: RESUME QUICK SHARING (Native OS Share) ---
+  window.shareResume = async function() {
+    try {
+      const sizeKey = localStorage.getItem(PAPER_KEY) || 'a4'
+      const size    = PAPER_SIZES[sizeKey]
+      const token   = localStorage.getItem('profile_token')
+      
+      // 1. Generate the PDF from your existing backend
+      const res = await fetch(`${SERVER}/generate-pdf`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({
+          html:     document.getElementById('resume').outerHTML,
+          width:    size.w,
+          height:   size.h,
+          template: templateNum
+        })
+      })
+      
+      if (!res.ok) throw new Error('Could not generate PDF')
+      const blob = await res.blob()
+      
+      // 2. Convert the blob to a File object
+      const file = new File([blob], 'My_Resume.pdf', { type: 'application/pdf' })
+
+      // 3. Trigger the native Share Menu
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'My Resume',
+          text: 'Here is my resume generated from ProFile.'
+        })
+        // The phone will now show a menu with Messenger, Mail, Bluetooth, etc.
+      } else {
+        // Fallback for Desktop (if they test it on a laptop)
+        alert('Direct sharing is supported on mobile devices. Your PDF will download instead so you can send it manually.')
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'My_Resume.pdf'
+        a.click()
+        URL.revokeObjectURL(url)
+      }
+    } catch (err) {
+      console.error('Share error:', err)
+      // If the user clicks "Cancel" on the share menu, it triggers an error. We ignore it.
+      if (err.name !== 'AbortError') {
+        alert('Could not share the resume. Please try downloading it instead.')
+      }
+    }
+  }
+
   applyPaperSize(localStorage.getItem(PAPER_KEY) || 'a4')
   if (!loadFormData()) loadFromDraft()
 }
