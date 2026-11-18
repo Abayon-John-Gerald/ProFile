@@ -100,3 +100,10 @@ body { margin:0; padding:0; background:var(--bg); font-family:'DM Sans',sans-ser
 .text.selected .resize-grip { opacity:1; }
 
 #ctx-menu { display:none; }
+
+@media print {
+  .header { display: none !important; }
+  body { background: white; margin: 0; padding: 0; }
+  .canvas-area { padding: 0; display: block; }
+  #resume { box-shadow: none; }
+}
