@@ -69,7 +69,7 @@ initResumeEditor({
       classes: ['name'],
       text: data.name || 'Your Name',
       left: 40, top: 22, width: 540,
-      fontSize: '34px', fontFamily: "'DM Serif Display', serif", color: '#1A1A18'
+      fontSize: `${Math.round(fontSize * 34 / 12)}px`, fontFamily: "'DM Serif Display', serif", color: '#1A1A18'
     })
 
     // Job title + location

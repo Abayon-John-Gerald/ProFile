@@ -35,7 +35,7 @@ initResumeEditor({
     buildTextElement({
       left: 20, top: 30, width: 580,
       text: data.name || 'Your Name',
-      fontSize: '32px', fontFamily: "'DM Serif Display', serif", color: '#ffffff'
+      fontSize: `${Math.round(fontSize * 32 / 12)}px`, fontFamily: "'DM Serif Display', serif", color: '#ffffff'
     })
     buildTextElement({
       left: 20, top: 90, width: 560,
