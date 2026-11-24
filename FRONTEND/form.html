@@ -1057,11 +1057,41 @@
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const rawTemplate = urlParams.get('template');
-
     const templateNum = ['1', '2', '3', '4'].includes(rawTemplate) ? rawTemplate : '1';
 
-    window.currentAccentDark = '#2C2C2C'
-    window.currentAccentLight = '#8FB89A'
+    // --- FIX: Define defaults BEFORE using them ---
+    const TEMPLATE_DEFAULTS = {
+      '1': { dark: '#2C2C2C', light: '#8FB89A' },
+      '2': { dark: '#4A5568', light: '#7EB5D6' },
+      '3': { dark: '#2B3A2E', light: '#8FB89A' },
+      '4': { dark: '#EDEAE3', light: '#8FB89A' }
+    };
+
+    // --- FIX: Load the correct template colors on startup ---
+    // Check if the user already saved colors for THIS template. If not, use the defaults.
+    const savedDark = localStorage.getItem('profile_accent_dark');
+    const savedLight = localStorage.getItem('profile_accent_light');
+
+    // If saved colors exist in local storage, use them. Otherwise, use the template defaults.
+    window.currentAccentDark = savedDark || TEMPLATE_DEFAULTS[templateNum].dark;
+    window.currentAccentLight = savedLight || TEMPLATE_DEFAULTS[templateNum].light;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // Visually highlight the correct color swatch on load
+      document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+
+      // If the current color matches a swatch, highlight it
+      document.querySelectorAll('.color-swatch').forEach(s => {
+        if (s.dataset.color === window.currentAccentDark) {
+          s.classList.add('active');
+        }
+      });
+
+      // Ensure the live preview shows the correct colors immediately
+      if (typeof applyAccentColor === 'function') {
+        applyAccentColor(window.currentAccentDark, window.currentAccentLight, document.querySelector('.color-swatch.active'));
+      }
+    });
 
     let photoBase64 = null
     let workCount = 0, eduCount = 0, certCount = 0, awardCount = 0, langCount = 0
@@ -1110,14 +1140,6 @@
 `
 
       saveDraft()
-    }
-
-
-    const TEMPLATE_DEFAULTS = {
-      '1': { dark: '#2C2C2C', light: '#8FB89A' },
-      '2': { dark: '#4A5568', light: '#7EB5D6' },
-      '3': { dark: '#2B3A2E', light: '#8FB89A' },
-      '4': { dark: '#EDEAE3', light: '#8FB89A' }
     }
 
     function resetAccentColor() {
@@ -2021,11 +2043,12 @@
     async function buildResume() {
       const formData = collectFormData()
 
-      // Save to local storage
       localStorage.setItem('profile_form_data', JSON.stringify(formData))
       localStorage.setItem('profile_form_draft_t' + templateNum, JSON.stringify(formData))
-      localStorage.setItem('profile_accent_dark', window.currentAccentDark || '#2C2C2C')
-      localStorage.setItem('profile_accent_light', window.currentAccentLight || '#8FB89A')
+
+      // --- FIX: Make sure these are saved! ---
+      localStorage.setItem('profile_accent_dark', window.currentAccentDark || TEMPLATE_DEFAULTS[templateNum].dark)
+      localStorage.setItem('profile_accent_light', window.currentAccentLight || TEMPLATE_DEFAULTS[templateNum].light)
 
       const token = localStorage.getItem('profile_token')
       if (token) {
@@ -2035,7 +2058,7 @@
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
             body: JSON.stringify({
               title: formData.name ? formData.name + "'s Resume" : 'Untitled Resume',
-              template_num: parseInt(templateNum), // Ensure this is an integer
+              template_num: parseInt(templateNum),
               resume_data: formData
             })
           })

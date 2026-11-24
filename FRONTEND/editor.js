@@ -18,9 +18,7 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     resume.style.width = s.w + 'px'
     resume.style.height = s.h + 'px'
     localStorage.setItem(PAPER_KEY, size)
-    if (typeof scaleResumePreview === 'function') {
-      setTimeout(scaleResumePreview, 50);
-    }
+    if (typeof scaleResumePreview === 'function') setTimeout(scaleResumePreview, 50);
   }
   window.applyPaperSize = applyPaperSize
 
@@ -163,27 +161,81 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     }
   }
 
-  // --- DIRECT PRINT ---
+  // --- FAILSAFE DIRECT PRINT ---
   window.printResume = function () {
     const printStyle = document.createElement('style');
     printStyle.id = 'dynamic-print-style';
     printStyle.innerHTML = `
       @media print {
-        @page { size: A4 portrait; margin: 0; }
-        body, html { margin: 0 !important; padding: 0 !important; height: 100vh !important; overflow: hidden !important; background: white !important; }
-        .header, .toolbar, .btn-download, .btn-reset, .btn-ghost, .canvas-area { display: none !important; }
-        #resume { position: absolute !important; top: 0 !important; left: 0 !important; box-shadow: none !important; transform: none !important; margin: 0 !important; page-break-after: avoid !important; page-break-inside: avoid !important; }
-        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        /* Force standard A4 size with 0 margins */
+        @page { 
+          size: A4 portrait; 
+          margin: 0 !important; 
+        }
+        
+        /* Reset body and html to strictly hide any overflow */
+        html, body { 
+          width: 100% !important;
+          height: 100% !important;
+          margin: 0 !important; 
+          padding: 0 !important; 
+          overflow: hidden !important; 
+          background: white !important;
+        }
+
+        /* Hide EVERYTHING except the resume container */
+        body > *:not(.canvas-area) {
+          display: none !important;
+        }
+
+        /* Reset the canvas area wrapper */
+        .canvas-area { 
+          display: block !important;
+          position: static !important;
+          margin: 0 !important; 
+          padding: 0 !important; 
+          transform: none !important;
+          width: 100% !important;
+          height: 100% !important;
+          overflow: hidden !important;
+        }
+        
+        /* Lock the resume to the exact page size */
+        #resume { 
+          display: block !important;
+          position: relative !important;
+          top: 0 !important; 
+          left: 0 !important; 
+          box-shadow: none !important; 
+          transform: none !important; /* Remove the mobile scaling */
+          margin: 0 !important;
+          border: none !important;
+          page-break-after: avoid !important;
+          page-break-before: avoid !important;
+          page-break-inside: avoid !important;
+          overflow: hidden !important;
+        }
+        
+        /* Force background colors to print */
+        * { 
+          -webkit-print-color-adjust: exact !important; 
+          print-color-adjust: exact !important; 
+        }
       }
     `;
     document.head.appendChild(printStyle);
+
     setTimeout(() => {
       window.print();
-      setTimeout(() => { const el = document.getElementById('dynamic-print-style'); if (el) el.remove(); }, 500);
-    }, 100);
+
+      setTimeout(() => {
+        const el = document.getElementById('dynamic-print-style');
+        if (el) el.remove();
+      }, 1000);
+    }, 150);
   }
 
-  // --- SMART QUICK SHARE (Mobile & Desktop) ---
+  // --- FIXED: SMART QUICK SHARE (Desktop & Mobile) ---
   window.shareResume = async function (e) {
     const sizeKey = localStorage.getItem(PAPER_KEY) || 'a4'
     const size = PAPER_SIZES[sizeKey]
@@ -198,7 +250,6 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     }
 
     try {
-      // 1. Fetch the PDF blob from backend
       const res = await fetch(`${SERVER}/generate-pdf`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -213,33 +264,36 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
       if (!res.ok) throw new Error('Could not generate PDF')
       const blob = await res.blob()
 
-      // 2. Try to use the Native Share API (Mobile)
+      // Create URL fallback for desktop
+      const fileUrl = URL.createObjectURL(blob);
       const file = new File([blob], 'My_Resume.pdf', { type: 'application/pdf' })
 
-      if (navigator.share) {
+      // Try native share first
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
           await navigator.share({
             files: [file],
             title: 'My Resume',
             text: 'Here is my resume generated from ProFile.'
           })
-          return; // Success! Exit the function.
+          URL.revokeObjectURL(fileUrl);
+          return;
         } catch (shareErr) {
-          // If the user cancelled, we just exit gracefully.
-          if (shareErr.name === 'AbortError') return;
-          // If it fails (e.g., HTTP instead of HTTPS), we fall through to the fallback.
-          console.warn('Native file share failed, falling back to download.', shareErr);
+          if (shareErr.name === 'AbortError') {
+            URL.revokeObjectURL(fileUrl);
+            return;
+          }
         }
       }
 
-      // 3. Fallback for Desktop OR if Native File Share fails
-      alert('Direct file sharing is not supported on this device/browser. Your PDF will download instead so you can send it manually.')
-      const url = URL.createObjectURL(blob)
+      // Desktop Fallback (Download)
+      alert('Direct sharing is not supported on this browser. Your PDF will download instead so you can send it manually.')
       const a = document.createElement('a')
-      a.href = url
+      a.href = fileUrl
       a.download = 'My_Resume.pdf'
       a.click()
-      URL.revokeObjectURL(url)
+
+      setTimeout(() => URL.revokeObjectURL(fileUrl), 1000);
 
     } catch (err) {
       console.error('Share error:', err)
@@ -249,7 +303,6 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     }
   }
 
-  // --- RESPONSIVE SCALING ---
   function scaleResumePreview() {
     const wrapper = document.querySelector('.canvas-area');
     const resumeEl = document.getElementById('resume');
