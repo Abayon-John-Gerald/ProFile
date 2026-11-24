@@ -1068,3 +1068,219 @@ body {
 
 
 }
+
+/* Fix grid to fit more cards */
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  padding-bottom: 40px;
+}
+
+/* Ensure cards don't stretch too wide */
+.template-card {
+  max-width: 300px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* General helper classes for the mini-previews */
+.template-preview {
+  position: relative;
+  aspect-ratio: 794 / 1123;
+  background: white;
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+}
+
+.template-preview .p-sidebar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+}
+
+.template-preview .p-topbar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+}
+
+.template-preview .p-bar {
+  position: absolute;
+  left: 0;
+  width: 100%;
+}
+
+.template-preview .p-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: #ccc;
+}
+
+.template-preview .p-name {
+  position: absolute;
+  height: 5%;
+  background: #1A1A18;
+  border-radius: 2px;
+}
+
+.template-preview .p-sub {
+  position: absolute;
+  height: 3%;
+  background: #D4CFC4;
+  border-radius: 2px;
+}
+
+.template-preview .p-line {
+  position: absolute;
+  background: #EDEAE3;
+  border-radius: 2px;
+}
+
+.template-preview .p-rule {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 1.5px;
+  background: #D4CFC4;
+}
+
+.template-preview .p-h-rule {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #000;
+}
+
+.template-preview .p-v-rule {
+  position: absolute;
+  width: 2px;
+  background: #000;
+}
+
+.template-preview .p-pill {
+  position: absolute;
+  border-radius: 20px;
+}
+
+.template-preview .p-box {
+  position: absolute;
+}
+
+/* Specific overrides for better visuals */
+.preview-t9 .p-box {
+  border-radius: 4px;
+}
+
+.preview-t12 .p-name {
+  border: 1.5px solid white;
+  background: transparent !important;
+}
+
+/* Tag styling */
+.tag-free {
+  background: rgba(118, 178, 91, 0.15);
+  color: #2B3A2E;
+}
+
+/* Paste this into the bottom of home.css */
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  padding-bottom: 40px;
+}
+
+.template-card {
+  max-width: 300px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.template-preview {
+  position: relative;
+  aspect-ratio: 794 / 1123;
+  background: white;
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+}
+
+.template-preview .p-sidebar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+}
+
+.template-preview .p-topbar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+}
+
+.template-preview .p-bar {
+  position: absolute;
+  left: 0;
+  width: 100%;
+}
+
+.template-preview .p-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: #ccc;
+}
+
+.template-preview .p-name {
+  position: absolute;
+  height: 5%;
+  background: #1A1A18;
+  border-radius: 2px;
+}
+
+.template-preview .p-sub {
+  position: absolute;
+  height: 3%;
+  background: #D4CFC4;
+  border-radius: 2px;
+}
+
+.template-preview .p-line {
+  position: absolute;
+  background: #EDEAE3;
+  border-radius: 2px;
+}
+
+.template-preview .p-rule {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 1.5px;
+  background: #D4CFC4;
+}
+
+.template-preview .p-h-rule {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #000;
+}
+
+.template-preview .p-v-rule {
+  position: absolute;
+  width: 2px;
+  background: #000;
+}
+
+.template-preview .p-pill {
+  position: absolute;
+  border-radius: 20px;
+}
+
+.template-preview .p-box {
+  position: absolute;
+}
