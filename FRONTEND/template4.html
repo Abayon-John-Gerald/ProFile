@@ -9,17 +9,16 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="style4.css">
-  <link rel="stylesheet" href="home.css">
+  <link rel="stylesheet" href="css/style4.css">
+  <link rel="stylesheet" href="css/home.css">
 </head>
 
 <body>
-  <script src="auth-guard.js"></script>
-
+  <script src="js/auth-guard.js"></script>
   <header class="header">
     <div class="header-logo">Pro<span>File</span></div>
     <div class="header-right">
-      <a class="btn-ghost" href="my-resume.html">Saved Resumes</a>
+      <a class="btn-ghost" href="pages/my-resume.html">Saved Resumes</a>
       <button class="btn-download" onclick="printResume()"
         style="background:#4A5568; color:white; margin-right:5px; display:inline-flex; align-items:center; gap:6px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -44,16 +43,11 @@
       <button onclick="logout()" class="btn-reset">Sign Out</button>
     </div>
   </header>
-
   <div class="canvas-area">
-    <!-- REMOVED the hardcoded placeholder text here. 
-         The editor.js will now cleanly inject only the real data. -->
     <div id="resume"></div>
   </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script src="editor.js"></script>
-  <script src="template4.js"></script>
+  <script src="js/editor.js"></script>
+  <script src="js/template4.js"></script>
 </body>
 
 </html>
