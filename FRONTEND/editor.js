@@ -93,6 +93,19 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
       localStorage.removeItem('profile_form_data')
       applyPaperSize(data.paperSize || 'a4')
 
+      // --- FIX: Inject Font Loader ---
+      if (data.fontFamily) {
+        const fontName = data.fontFamily.replace(/'/g, '').split(',')[0];
+        if (!document.getElementById('dynamic-font-loader')) {
+          const link = document.createElement('link');
+          link.id = 'dynamic-font-loader';
+          link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/ /g, '+')}:wght@300;400;500;700&display=swap`;
+          link.rel = 'stylesheet';
+          document.head.appendChild(link);
+        }
+      }
+      // ------------------------------
+
       document.querySelectorAll('#resume .text').forEach(el => el.remove())
       const resumeEl = document.getElementById('resume')
       Array.from(resumeEl.children).forEach(child => {
@@ -262,42 +275,36 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
       })
 
       if (!res.ok) throw new Error('Could not generate PDF')
-      const blob = await res.blob()
 
-      // Create URL fallback for desktop
-      const fileUrl = URL.createObjectURL(blob);
-      const file = new File([blob], 'My_Resume.pdf', { type: 'application/pdf' })
+      // Get the blob and explicitly set the type
+      const arrayBuffer = await res.arrayBuffer();
+      const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
 
-      // Try native share first
+      // Create the File object
+      const file = new File([blob], 'My_Resume.pdf', { type: 'application/pdf' });
+
+      // Check if the device supports sharing files
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({
-            files: [file],
-            title: 'My Resume',
-            text: 'Here is my resume generated from ProFile.'
-          })
-          URL.revokeObjectURL(fileUrl);
-          return;
-        } catch (shareErr) {
-          if (shareErr.name === 'AbortError') {
-            URL.revokeObjectURL(fileUrl);
-            return;
-          }
-        }
+        await navigator.share({
+          files: [file],
+          title: 'My Resume',
+          text: 'Here is my resume generated from ProFile.'
+        })
+      } else {
+        // Fallback for Desktop (Windows/Mac)
+        alert('Direct file sharing is only supported on mobile devices. Your PDF will download instead so you can send it manually.')
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'My_Resume.pdf'
+        a.click()
+        URL.revokeObjectURL(url)
       }
-
-      // Desktop Fallback (Download)
-      alert('Direct sharing is not supported on this browser. Your PDF will download instead so you can send it manually.')
-      const a = document.createElement('a')
-      a.href = fileUrl
-      a.download = 'My_Resume.pdf'
-      a.click()
-
-      setTimeout(() => URL.revokeObjectURL(fileUrl), 1000);
-
     } catch (err) {
       console.error('Share error:', err)
-      alert('Could not share the resume. Please try downloading it instead.')
+      if (err.name !== 'AbortError') {
+        alert('Could not share the resume. Please try downloading it instead.')
+      }
     } finally {
       if (btn) { btn.innerHTML = originalHTML; btn.disabled = false; }
     }
