@@ -3,17 +3,17 @@ initResumeEditor({
   storageKey: 'profile_canvas_state_t2',
   renderFromFormData({ data, buildTextElement, buildHtmlElement, buildImageElement }) {
 
-    const HDR_H   = 180
-    const COL_L   = 260
+    const HDR_H = 180
+    const COL_L = 260
     const COL_R_L = 280
     const COL_R_W = 514
-    const BODY_T  = HDR_H + 20
+    const BODY_T = HDR_H + 20
 
     const fontFamily = data.fontFamily || "'DM Sans', sans-serif"
-    const fontSize   = parseFloat(data.fontSize) || 12
+    const fontSize = parseFloat(data.fontSize) || 12
 
     // Accent colors from saved data
-    const accentDark  = data.accentDark  || localStorage.getItem('profile_accent_dark')  || '#4A5568'
+    const accentDark = data.accentDark || localStorage.getItem('profile_accent_dark') || '#4A5568'
     const accentLight = data.accentLight || localStorage.getItem('profile_accent_light') || '#7EB5D6'
 
     // HEADER
@@ -61,8 +61,8 @@ initResumeEditor({
     }
 
     let contactHTML = ''
-    if (data.email)    contactHTML += `<div style="margin-bottom:3px;display:flex;gap:5px;align-items:center;"><span style="color:${accentDark};">✉</span> <span style="word-break:break-all;">${data.email}</span></div>`
-    if (data.phone)    contactHTML += `<div style="margin-bottom:3px;display:flex;gap:5px;"><span style="color:${accentDark};">📞</span> ${data.phone}</div>`
+    if (data.email) contactHTML += `<div style="margin-bottom:3px;display:flex;gap:5px;align-items:center;"><span style="color:${accentDark};">✉</span> <span style="word-break:break-all;">${data.email}</span></div>`
+    if (data.phone) contactHTML += `<div style="margin-bottom:3px;display:flex;gap:5px;"><span style="color:${accentDark};">📞</span> ${data.phone}</div>`
     if (data.location) contactHTML += `<div style="margin-bottom:3px;display:flex;gap:5px;"><span style="color:${accentDark};">📍</span> ${data.location}</div>`
     if (contactHTML) leftHTML += leftSection('Contact', contactHTML)
 
@@ -73,7 +73,7 @@ initResumeEditor({
         eduHTML += `<div style="margin-bottom:8px;">
           ${edu.school ? `<div style="font-weight:600;font-size:${fontSize - 1}px;">${edu.school}</div>` : ''}
           ${edu.course ? `<div style="font-size:${fontSize - 1}px;color:#555;">${edu.course}</div>` : ''}
-          ${edu.year   ? `<div style="font-size:${fontSize - 2}px;color:#7A776E;">${edu.year}</div>` : ''}
+          ${edu.year ? `<div style="font-size:${fontSize - 2}px;color:#7A776E;">${edu.year}</div>` : ''}
         </div>`
       })
       leftHTML += leftSection('Education', eduHTML)
@@ -157,7 +157,7 @@ initResumeEditor({
         if (!cert.name && !cert.org) return
         certHTML += `<div style="margin-bottom:6px;">
           <div style="font-weight:600;font-size:${fontSize}px;">${cert.name || ''}</div>
-          ${cert.org  ? `<div style="font-size:${fontSize - 1}px;color:#555;">${cert.org}</div>`  : ''}
+          ${cert.org ? `<div style="font-size:${fontSize - 1}px;color:#555;">${cert.org}</div>` : ''}
           ${cert.date ? `<div style="font-size:${fontSize - 2}px;color:#7A776E;">${cert.date}</div>` : ''}
         </div>`
       })
@@ -171,7 +171,7 @@ initResumeEditor({
         awardHTML += `<div style="margin-bottom:6px;">
           <div style="font-weight:600;font-size:${fontSize}px;">${award.name || ''}</div>
           ${award.issuer ? `<div style="font-size:${fontSize - 1}px;color:#555;">${award.issuer}</div>` : ''}
-          ${award.year   ? `<div style="font-size:${fontSize - 2}px;color:#7A776E;">${award.year}</div>` : ''}
+          ${award.year ? `<div style="font-size:${fontSize - 2}px;color:#7A776E;">${award.year}</div>` : ''}
         </div>`
       })
       rightHTML += rightSection('Awards & Achievements', awardHTML)

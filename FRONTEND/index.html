@@ -1,32 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ProFile - Resume Builder</title>
   <link rel="stylesheet" href="home.css">
 </head>
+
 <body>
   <script src="auth-guard.js"></script>
 
   <!-- ── Welcome Modal ── -->
-  <div id="welcomeOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:9999; align-items:center; justify-content:center; padding:24px;">
-    <div style="background:white; border-radius:20px; padding:40px; width:100%; max-width:460px; box-shadow:0 20px 60px rgba(0,0,0,0.15); animation:popIn 0.4s cubic-bezier(.22,.68,0,1.2) both; font-family:'DM Sans',sans-serif;">
+  <div id="welcomeOverlay"
+    style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:9999; align-items:center; justify-content:center; padding:24px;">
+    <div
+      style="background:white; border-radius:20px; padding:40px; width:100%; max-width:460px; box-shadow:0 20px 60px rgba(0,0,0,0.15); animation:popIn 0.4s cubic-bezier(.22,.68,0,1.2) both; font-family:'DM Sans',sans-serif;">
 
       <!-- Step 1: Pick role -->
       <div id="step1">
-        <p style="font-size:12px; font-weight:500; color:#8FB89A; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:10px;">Welcome to ProFile</p>
-        <h2 style="font-family:'DM Serif Display',serif; font-size:26px; color:#2B3A2E; margin-bottom:8px;">First, tell us about yourself</h2>
+        <p
+          style="font-size:12px; font-weight:500; color:#8FB89A; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:10px;">
+          Welcome to ProFile</p>
+        <h2 style="font-family:'DM Serif Display',serif; font-size:26px; color:#2B3A2E; margin-bottom:8px;">First, tell
+          us about yourself</h2>
 
         <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:28px;">
-          <button onclick="selectRole('student')" id="btn-student" style="display:flex; align-items:center; gap:14px; padding:16px 18px; border:2px solid #D4CFC4; border-radius:12px; background:#F7F5F0; cursor:pointer; text-align:left; font-family:'DM Sans',sans-serif; width:100%; transition:border-color 0.15s;">
+          <button onclick="selectRole('student')" id="btn-student"
+            style="display:flex; align-items:center; gap:14px; padding:16px 18px; border:2px solid #D4CFC4; border-radius:12px; background:#F7F5F0; cursor:pointer; text-align:left; font-family:'DM Sans',sans-serif; width:100%; transition:border-color 0.15s;">
             <span style="font-size:24px;">🎓</span>
             <div>
               <div style="font-size:14px; font-weight:500; color:#1A1A18; margin-bottom:2px;">Student</div>
-              <div style="font-size:12px; color:#7A776E;">Building my first resume for internships or entry-level jobs</div>
+              <div style="font-size:12px; color:#7A776E;">Building my first resume for internships or entry-level jobs
+              </div>
             </div>
           </button>
-          <button onclick="selectRole('job_seeker')" id="btn-jobseeker" style="display:flex; align-items:center; gap:14px; padding:16px 18px; border:2px solid #D4CFC4; border-radius:12px; background:#F7F5F0; cursor:pointer; text-align:left; font-family:'DM Sans',sans-serif; width:100%; transition:border-color 0.15s;">
+          <button onclick="selectRole('job_seeker')" id="btn-jobseeker"
+            style="display:flex; align-items:center; gap:14px; padding:16px 18px; border:2px solid #D4CFC4; border-radius:12px; background:#F7F5F0; cursor:pointer; text-align:left; font-family:'DM Sans',sans-serif; width:100%; transition:border-color 0.15s;">
             <span style="font-size:24px;">💼</span>
             <div>
               <div style="font-size:14px; font-weight:500; color:#1A1A18; margin-bottom:2px;">Job Seeker</div>
@@ -35,46 +45,65 @@
           </button>
         </div>
 
-        <button id="continueBtn" onclick="goToStep2()" disabled style="width:100%; height:44px; background:linear-gradient(135deg,#2B3A2E,#3d5241); color:#F0EDE5; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:not-allowed; opacity:0.4; transition:opacity 0.15s;">Continue →</button>
-        <button onclick="closeWelcome()" style="display:block; width:100%; margin-top:12px; background:none; border:none; font-family:'DM Sans',sans-serif; font-size:12px; color:#7A776E; cursor:pointer; padding:4px;">Skip for now</button>
+        <button id="continueBtn" onclick="goToStep2()" disabled
+          style="width:100%; height:44px; background:linear-gradient(135deg,#2B3A2E,#3d5241); color:#F0EDE5; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:not-allowed; opacity:0.4; transition:opacity 0.15s;">Continue
+          →</button>
+        <button onclick="closeWelcome()"
+          style="display:block; width:100%; margin-top:12px; background:none; border:none; font-family:'DM Sans',sans-serif; font-size:12px; color:#7A776E; cursor:pointer; padding:4px;">Skip
+          for now</button>
       </div>
 
       <!-- Step 2: Tutorial -->
       <div id="step2" style="display:none;">
         <div id="tut-1" class="tut-step">
           <div style="font-size:48px; margin-bottom:16px;">📝</div>
-          <h3 style="font-family:'DM Serif Display',serif; font-size:22px; color:#2B3A2E; margin-bottom:10px;">Build your resume</h3>
-          <p style="font-size:13px; color:#7A776E; line-height:1.6;">Use the Resume Builder to fill in your personal info, education, skills, and experience step by step.</p>
+          <h3 style="font-family:'DM Serif Display',serif; font-size:22px; color:#2B3A2E; margin-bottom:10px;">Build
+            your resume</h3>
+          <p style="font-size:13px; color:#7A776E; line-height:1.6;">Use the Resume Builder to fill in your personal
+            info, education, skills, and experience step by step.</p>
         </div>
         <div id="tut-2" class="tut-step" style="display:none;">
           <div style="font-size:48px; margin-bottom:16px;">🎨</div>
-          <h3 style="font-family:'DM Serif Display',serif; font-size:22px; color:#2B3A2E; margin-bottom:10px;">Pick a template</h3>
-          <p style="font-size:13px; color:#7A776E; line-height:1.6;">Choose from professionally designed templates. Each one is clean, modern, and ATS-friendly.</p>
+          <h3 style="font-family:'DM Serif Display',serif; font-size:22px; color:#2B3A2E; margin-bottom:10px;">Pick a
+            template</h3>
+          <p style="font-size:13px; color:#7A776E; line-height:1.6;">Choose from professionally designed templates. Each
+            one is clean, modern, and ATS-friendly.</p>
         </div>
         <div id="tut-3" class="tut-step" style="display:none;">
           <div style="font-size:48px; margin-bottom:16px;">👁️</div>
-          <h3 style="font-family:'DM Serif Display',serif; font-size:22px; color:#2B3A2E; margin-bottom:10px;">Preview in real time</h3>
+          <h3 style="font-family:'DM Serif Display',serif; font-size:22px; color:#2B3A2E; margin-bottom:10px;">Preview
+            in real time</h3>
           <p style="font-size:13px; color:#7A776E; line-height:1.6;">See exactly how your resume looks as you type.</p>
         </div>
         <div id="tut-4" class="tut-step" style="display:none;">
           <div style="font-size:48px; margin-bottom:16px;">📄</div>
-          <h3 style="font-family:'DM Serif Display',serif; font-size:22px; color:#2B3A2E; margin-bottom:10px;">Export as PDF</h3>
-          <p style="font-size:13px; color:#7A776E; line-height:1.6;">When you're ready, download your resume as a PDF!</p>
+          <h3 style="font-family:'DM Serif Display',serif; font-size:22px; color:#2B3A2E; margin-bottom:10px;">Export as
+            PDF</h3>
+          <p style="font-size:13px; color:#7A776E; line-height:1.6;">When you're ready, download your resume as a PDF!
+          </p>
         </div>
 
         <!-- Dots -->
         <div style="display:flex; justify-content:center; gap:6px; margin:24px 0 20px;">
-          <div id="dot-1" style="width:7px;height:7px;border-radius:50%;background:#4A6350;transform:scale(1.3);transition:all 0.2s;"></div>
+          <div id="dot-1"
+            style="width:7px;height:7px;border-radius:50%;background:#4A6350;transform:scale(1.3);transition:all 0.2s;">
+          </div>
           <div id="dot-2" style="width:7px;height:7px;border-radius:50%;background:#D4CFC4;transition:all 0.2s;"></div>
           <div id="dot-3" style="width:7px;height:7px;border-radius:50%;background:#D4CFC4;transition:all 0.2s;"></div>
           <div id="dot-4" style="width:7px;height:7px;border-radius:50%;background:#D4CFC4;transition:all 0.2s;"></div>
         </div>
 
         <div style="display:flex; gap:10px;">
-          <button id="backBtn" onclick="prevTut()" style="display:none; height:44px; padding:0 18px; background:none; border:1.5px solid #D4CFC4; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; color:#7A776E; cursor:pointer;">← Back</button>
-          <button id="tutNextBtn" onclick="nextTut()" style="flex:1; height:44px; background:linear-gradient(135deg,#2B3A2E,#3d5241); color:#F0EDE5; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer;">Next →</button>
+          <button id="backBtn" onclick="prevTut()"
+            style="display:none; height:44px; padding:0 18px; background:none; border:1.5px solid #D4CFC4; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; color:#7A776E; cursor:pointer;">←
+            Back</button>
+          <button id="tutNextBtn" onclick="nextTut()"
+            style="flex:1; height:44px; background:linear-gradient(135deg,#2B3A2E,#3d5241); color:#F0EDE5; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer;">Next
+            →</button>
         </div>
-        <button onclick="closeWelcome()" style="display:block; width:100%; margin-top:12px; background:none; border:none; font-family:'DM Sans',sans-serif; font-size:12px; color:#7A776E; cursor:pointer; padding:4px;">Skip tutorial</button>
+        <button onclick="closeWelcome()"
+          style="display:block; width:100%; margin-top:12px; background:none; border:none; font-family:'DM Sans',sans-serif; font-size:12px; color:#7A776E; cursor:pointer; padding:4px;">Skip
+          tutorial</button>
       </div>
 
     </div>
@@ -82,10 +111,21 @@
 
   <style>
     @keyframes popIn {
-      from { opacity:0; transform:scale(0.92) translateY(16px); }
-      to   { opacity:1; transform:scale(1) translateY(0); }
+      from {
+        opacity: 0;
+        transform: scale(0.92) translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
     }
-    .tut-step { text-align:center; padding:8px 0; }
+
+    .tut-step {
+      text-align: center;
+      padding: 8px 0;
+    }
   </style>
 
   <header class="site-header">
@@ -203,8 +243,8 @@
         <input type="text" placeholder="Search templates..." id="searchInput" oninput="filterTemplates()">
         <button class="search-btn" type="button">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M10 10L13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.5" />
+            <path d="M10 10L13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
           </svg>
           Search
         </button>
@@ -217,9 +257,12 @@
             <div style="position:absolute;left:0;top:0;width:24%;height:28%;background:#3A3A3A;"></div>
             <div class="p-name" style="background:#1A1A18;"></div>
             <div class="p-sub" style="background:#D4CFC4;"></div>
-            <div class="p-line p-line-1"></div><div class="p-line p-line-2"></div>
-            <div class="p-line p-line-3"></div><div class="p-line p-line-4"></div>
-            <div class="p-line p-line-5"></div><div class="p-line p-line-6"></div>
+            <div class="p-line p-line-1"></div>
+            <div class="p-line p-line-2"></div>
+            <div class="p-line p-line-3"></div>
+            <div class="p-line p-line-4"></div>
+            <div class="p-line p-line-5"></div>
+            <div class="p-line p-line-6"></div>
           </div>
           <div class="template-info">
             <span class="template-name">Classic Sidebar</span>
@@ -229,10 +272,14 @@
 
         <a class="template-card" href="form.html?template=2" data-name="bold header">
           <div class="template-preview preview-t2">
-            <div style="position:absolute;left:0;top:0;width:100%;height:22%;background:#4A5568;clip-path:polygon(0 0,100% 0,100% 75%,0 100%);"></div>
+            <div
+              style="position:absolute;left:0;top:0;width:100%;height:22%;background:#4A5568;clip-path:polygon(0 0,100% 0,100% 75%,0 100%);">
+            </div>
             <div class="p-name" style="background:white;opacity:0.9;top:5%;left:6%;"></div>
             <div class="p-sub" style="background:rgba(255,255,255,0.5);top:13%;left:6%;"></div>
-            <div class="p-line p-line-4"></div><div class="p-line p-line-5"></div><div class="p-line p-line-6"></div>
+            <div class="p-line p-line-4"></div>
+            <div class="p-line p-line-5"></div>
+            <div class="p-line p-line-6"></div>
           </div>
           <div class="template-info">
             <span class="template-name">Modern Header</span>
@@ -242,8 +289,12 @@
 
         <a class="template-card" href="form.html?template=3" data-name="minimal">
           <div class="template-preview preview-t3">
-            <div class="p-name"></div><div class="p-sub"></div><div class="p-rule"></div>
-            <div class="p-line p-line-4"></div><div class="p-line p-line-5"></div><div class="p-line p-line-6"></div>
+            <div class="p-name"></div>
+            <div class="p-sub"></div>
+            <div class="p-rule"></div>
+            <div class="p-line p-line-4"></div>
+            <div class="p-line p-line-5"></div>
+            <div class="p-line p-line-6"></div>
           </div>
           <div class="template-info">
             <span class="template-name">Minimal</span>
@@ -253,9 +304,15 @@
 
         <a class="template-card" href="form.html?template=4" data-name="two column">
           <div class="template-preview preview-t4">
-            <div class="p-col-l"></div><div class="p-name"></div><div class="p-sub"></div>
-            <div class="p-line p-line-1"></div><div class="p-line p-line-2"></div><div class="p-line p-line-3"></div>
-            <div class="p-line-r p-line-4"></div><div class="p-line-r p-line-5"></div><div class="p-line-r p-line-6"></div>
+            <div class="p-col-l"></div>
+            <div class="p-name"></div>
+            <div class="p-sub"></div>
+            <div class="p-line p-line-1"></div>
+            <div class="p-line p-line-2"></div>
+            <div class="p-line p-line-3"></div>
+            <div class="p-line-r p-line-4"></div>
+            <div class="p-line-r p-line-5"></div>
+            <div class="p-line-r p-line-6"></div>
           </div>
           <div class="template-info">
             <span class="template-name">Two Column</span>
@@ -305,41 +362,41 @@
 
     // Welcome modal logic
     let selectedRole = null
-    let currentTut   = 1
-    const totalTut   = 4
+    let currentTut = 1
+    const totalTut = 4
 
-   async function checkOnboarding() {
-  try {
-    const res = await fetch('/auth/me', {
-      headers: { 'Authorization': 'Bearer ' + localStorage.getItem('profile_token') }
-    })
-    const user = await res.json()
-    if (!user.onboarded) {
-      document.getElementById('welcomeOverlay').style.display = 'flex'
-      localStorage.setItem('profile_onboarded_' + user.id, '1')
-    }
-  } catch(e) {
-    const userStr = localStorage.getItem('profile_user')
-    if (userStr) {
-      const user = JSON.parse(userStr)
-      if (!localStorage.getItem('profile_onboarded_' + user.id || user.username)) {
-        document.getElementById('welcomeOverlay').style.display = 'flex'
-        localStorage.setItem(key, '1')
+    async function checkOnboarding() {
+      try {
+        const res = await fetch('/auth/me', {
+          headers: { 'Authorization': 'Bearer ' + localStorage.getItem('profile_token') }
+        })
+        const user = await res.json()
+        if (!user.onboarded) {
+          document.getElementById('welcomeOverlay').style.display = 'flex'
+          localStorage.setItem('profile_onboarded_' + user.id, '1')
+        }
+      } catch (e) {
+        const userStr = localStorage.getItem('profile_user')
+        if (userStr) {
+          const user = JSON.parse(userStr)
+          if (!localStorage.getItem('profile_onboarded_' + user.id || user.username)) {
+            document.getElementById('welcomeOverlay').style.display = 'flex'
+            localStorage.setItem(key, '1')
+          }
+        }
       }
     }
-  }
-}
 
     function selectRole(role) {
       selectedRole = role
-      document.getElementById('btn-student').style.borderColor   = role === 'student'    ? '#4A6350' : '#D4CFC4'
-      document.getElementById('btn-jobseeker').style.borderColor = role === 'job_seeker'  ? '#4A6350' : '#D4CFC4'
-      document.getElementById('btn-student').style.background    = role === 'student'    ? '#EBF3EE' : '#F7F5F0'
-      document.getElementById('btn-jobseeker').style.background  = role === 'job_seeker'  ? '#EBF3EE' : '#F7F5F0'
+      document.getElementById('btn-student').style.borderColor = role === 'student' ? '#4A6350' : '#D4CFC4'
+      document.getElementById('btn-jobseeker').style.borderColor = role === 'job_seeker' ? '#4A6350' : '#D4CFC4'
+      document.getElementById('btn-student').style.background = role === 'student' ? '#EBF3EE' : '#F7F5F0'
+      document.getElementById('btn-jobseeker').style.background = role === 'job_seeker' ? '#EBF3EE' : '#F7F5F0'
       const btn = document.getElementById('continueBtn')
       btn.disabled = false
       btn.style.opacity = '1'
-      btn.style.cursor  = 'pointer'
+      btn.style.cursor = 'pointer'
     }
 
     function goToStep2() {
@@ -359,7 +416,7 @@
           'Authorization': 'Bearer ' + localStorage.getItem('profile_token')
         },
         body: JSON.stringify({ user_type: selectedRole })
-      }).catch(() => {}) 
+      }).catch(() => { })
 
       document.getElementById('step1').style.display = 'none'
       document.getElementById('step2').style.display = 'block'
@@ -369,11 +426,11 @@
       if (currentTut < totalTut) {
         document.getElementById('tut-' + currentTut).style.display = 'none'
         document.getElementById('dot-' + currentTut).style.background = '#D4CFC4'
-        document.getElementById('dot-' + currentTut).style.transform  = 'scale(1)'
+        document.getElementById('dot-' + currentTut).style.transform = 'scale(1)'
         currentTut++
         document.getElementById('tut-' + currentTut).style.display = 'block'
         document.getElementById('dot-' + currentTut).style.background = '#4A6350'
-        document.getElementById('dot-' + currentTut).style.transform  = 'scale(1.3)'
+        document.getElementById('dot-' + currentTut).style.transform = 'scale(1.3)'
         document.getElementById('backBtn').style.display = 'block'
         if (currentTut === totalTut) {
           document.getElementById('tutNextBtn').textContent = 'Get started →'
@@ -387,11 +444,11 @@
       if (currentTut > 1) {
         document.getElementById('tut-' + currentTut).style.display = 'none'
         document.getElementById('dot-' + currentTut).style.background = '#D4CFC4'
-        document.getElementById('dot-' + currentTut).style.transform  = 'scale(1)'
+        document.getElementById('dot-' + currentTut).style.transform = 'scale(1)'
         currentTut--
         document.getElementById('tut-' + currentTut).style.display = 'block'
         document.getElementById('dot-' + currentTut).style.background = '#4A6350'
-        document.getElementById('dot-' + currentTut).style.transform  = 'scale(1.3)'
+        document.getElementById('dot-' + currentTut).style.transform = 'scale(1.3)'
         document.getElementById('tutNextBtn').textContent = 'Next →'
         if (currentTut === 1) document.getElementById('backBtn').style.display = 'none'
       }
@@ -410,4 +467,5 @@
     checkOnboarding()
   </script>
 </body>
+
 </html>

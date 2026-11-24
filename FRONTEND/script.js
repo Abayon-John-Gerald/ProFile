@@ -4,20 +4,20 @@
 
 const SERVER = 'http://localhost:3000'
 const STORAGE_KEY = 'profile_canvas_state'
-const PAPER_KEY   = 'profile_paper_size'
+const PAPER_KEY = 'profile_paper_size'
 
 /* ─── PAPER SIZE ─────────────────────────────── */
 
 const PAPER_SIZES = {
-  a4:     { w: 794,  h: 1123, label: 'A4' },
-  letter: { w: 816,  h: 1056, label: 'Letter' }
+  a4: { w: 794, h: 1123, label: 'A4' },
+  letter: { w: 816, h: 1056, label: 'Letter' }
 }
 
 function applyPaperSize(size) {
   const s = PAPER_SIZES[size] || PAPER_SIZES.a4
   const resume = document.getElementById('resume')
   if (!resume) return
-  resume.style.width  = s.w + 'px'
+  resume.style.width = s.w + 'px'
   resume.style.height = s.h + 'px'
   // also update sidebar-accent width
   const accent = resume.querySelector('.sidebar-accent')
@@ -36,33 +36,33 @@ function scheduleSave() {
 function serializeElements() {
   return Array.from(document.querySelectorAll('#resume .text')).map(el => {
     const content = el.querySelector('.text-content')
-    const img     = el.querySelector('img')
+    const img = el.querySelector('img')
     if (img) {
       return {
-        type:    'image',
-        left:    el.style.left,
-        top:     el.style.top,
-        width:   el.style.width,
-        height:  el.style.height,
-        src:     img.src,
+        type: 'image',
+        left: el.style.left,
+        top: el.style.top,
+        width: el.style.width,
+        height: el.style.height,
+        src: img.src,
         classes: Array.from(el.classList).filter(c => c !== 'text' && c !== 'selected')
       }
     }
     return {
-      type:         'text',
-      left:         el.style.left,
-      top:          el.style.top,
-      width:        el.style.width,
-      height:       el.style.height,
-      html:         content ? content.innerHTML         : '',
-      fontSize:     content ? content.style.fontSize    : '',
-      fontFamily:   content ? content.style.fontFamily  : '',
-      color:        content ? content.style.color       : '',
-      fontWeight:   content ? content.style.fontWeight  : '',
-      borderBottom: content ? content.style.borderBottom: '',
-      paddingBottom:content ? content.style.paddingBottom:'',
-      letterSpacing:content ? content.style.letterSpacing:'',
-      classes:      Array.from(el.classList).filter(c => c !== 'text' && c !== 'selected')
+      type: 'text',
+      left: el.style.left,
+      top: el.style.top,
+      width: el.style.width,
+      height: el.style.height,
+      html: content ? content.innerHTML : '',
+      fontSize: content ? content.style.fontSize : '',
+      fontFamily: content ? content.style.fontFamily : '',
+      color: content ? content.style.color : '',
+      fontWeight: content ? content.style.fontWeight : '',
+      borderBottom: content ? content.style.borderBottom : '',
+      paddingBottom: content ? content.style.paddingBottom : '',
+      letterSpacing: content ? content.style.letterSpacing : '',
+      classes: Array.from(el.classList).filter(c => c !== 'text' && c !== 'selected')
     }
   })
 }
@@ -100,46 +100,46 @@ function loadFormData() {
     // ── LAYOUT CONFIG PER TEMPLATE ──
     const layouts = {
       1: { // Classic Sidebar
-        hasSidebar:   true,
-        sidebarW:     188,
-        nameLeft:     212, nameTop: 36,  nameW: 540,
-        jobLeft:      212, jobTop:  100, jobW:  540,
-        mainLeft:     212, mainTop: 145, mainW: 540,
-        nameColor:    '#1A1A18', nameFont: "'DM Serif Display', serif", nameSz: '32px',
-        jobColor:     '#7A776E',
+        hasSidebar: true,
+        sidebarW: 188,
+        nameLeft: 212, nameTop: 36, nameW: 540,
+        jobLeft: 212, jobTop: 100, jobW: 540,
+        mainLeft: 212, mainTop: 145, mainW: 540,
+        nameColor: '#1A1A18', nameFont: "'DM Serif Display', serif", nameSz: '32px',
+        jobColor: '#7A776E',
         sectionColor: '#2B3A2E', sectionBorder: '1px solid #8FB89A',
       },
       2: { // Bold Header — full width dark bar, content below
-        hasSidebar:   false,
-        hasHeader:    true,
-        headerH:      160,
-        nameLeft:     48,  nameTop: 32,  nameW: 600,
-        jobLeft:      48,  jobTop:  100, jobW:  500,
-        contactLeft:  48,  contactTop: 178, contactW: 700,
-        mainLeft:     48,  mainTop: 220, mainW: 700,
-        nameColor:    '#EDE9DF', nameFont: "'DM Serif Display', serif", nameSz: '36px',
-        jobColor:     '#8FB89A',
+        hasSidebar: false,
+        hasHeader: true,
+        headerH: 160,
+        nameLeft: 48, nameTop: 32, nameW: 600,
+        jobLeft: 48, jobTop: 100, jobW: 500,
+        contactLeft: 48, contactTop: 178, contactW: 700,
+        mainLeft: 48, mainTop: 220, mainW: 700,
+        nameColor: '#EDE9DF', nameFont: "'DM Serif Display', serif", nameSz: '36px',
+        jobColor: '#8FB89A',
         sectionColor: '#2B3A2E', sectionBorder: '1px solid #8FB89A',
       },
       3: { // Minimal — full width, thin rule at top
-        hasSidebar:   false,
-        hasHeader:    false,
-        nameLeft:     40,  nameTop: 22,  nameW: 540,
-        jobLeft:      40,  jobTop:  75,  jobW:  500,
-        contactLeft:  40,  contactTop: 120, contactW: 714,
-        mainLeft:     40,  mainTop: 158, mainW: 714,
-        nameColor:    '#1A1A18', nameFont: "'DM Serif Display', serif", nameSz: '34px',
-        jobColor:     '#7A776E',
+        hasSidebar: false,
+        hasHeader: false,
+        nameLeft: 40, nameTop: 22, nameW: 540,
+        jobLeft: 40, jobTop: 75, jobW: 500,
+        contactLeft: 40, contactTop: 120, contactW: 714,
+        mainLeft: 40, mainTop: 158, mainW: 714,
+        nameColor: '#1A1A18', nameFont: "'DM Serif Display', serif", nameSz: '34px',
+        jobColor: '#7A776E',
         sectionColor: '#2B3A2E', sectionBorder: '1px solid #8FB89A',
       },
       4: { // Two Column
-        hasSidebar:   true,
-        sidebarW:     300,
-        nameLeft:     14,  nameTop: 36,  nameW: 270,
-        jobLeft:      14,  jobTop:  90,  jobW:  270,
-        mainLeft:     320, mainTop: 36,  mainW: 450,
-        nameColor:    '#2B3A2E', nameFont: "'DM Serif Display', serif", nameSz: '24px',
-        jobColor:     '#8FB89A',
+        hasSidebar: true,
+        sidebarW: 300,
+        nameLeft: 14, nameTop: 36, nameW: 270,
+        jobLeft: 14, jobTop: 90, jobW: 270,
+        mainLeft: 320, mainTop: 36, mainW: 450,
+        nameColor: '#2B3A2E', nameFont: "'DM Serif Display', serif", nameSz: '24px',
+        jobColor: '#8FB89A',
         sectionColor: '#2B3A2E', sectionBorder: '1px solid #8FB89A',
       }
     }
@@ -226,7 +226,7 @@ function loadFormData() {
         mainHTML += `<div style="margin-bottom:10px;">`
         mainHTML += `<div style="font-weight:bold;font-size:12px;color:#1A1A18;">${job.title || ""}${job.company ? " — " + job.company : ""}</div>`
         if (job.duration) mainHTML += `<div style="font-size:11px;color:#7A776E;margin-bottom:2px;">${job.duration}</div>`
-        if (job.desc)     mainHTML += `<div style="font-size:12px;color:#1A1A18;margin-top:3px;">${job.desc}</div>`
+        if (job.desc) mainHTML += `<div style="font-size:12px;color:#1A1A18;margin-top:3px;">${job.desc}</div>`
         mainHTML += `</div>`
       })
       mainHTML += `<div style="margin-bottom:14px;"></div>`
@@ -242,7 +242,7 @@ function loadFormData() {
         mainHTML += `<div style="margin-bottom:10px;">`
         if (edu.school) mainHTML += `<div style="font-weight:bold;font-size:12px;color:#1A1A18;">${edu.school}</div>`
         if (edu.course) mainHTML += `<div style="font-size:12px;color:#1A1A18;">${edu.course}</div>`
-        if (edu.year)   mainHTML += `<div style="font-size:11px;color:#7A776E;">${edu.year}</div>`
+        if (edu.year) mainHTML += `<div style="font-size:11px;color:#7A776E;">${edu.year}</div>`
         mainHTML += `</div>`
       })
     }
@@ -264,7 +264,7 @@ function loadFormData() {
     selectElement(null)
     saveSession()
     return true
-  } catch(e) {
+  } catch (e) {
     console.warn("Could not load form data:", e)
     return false
   }
@@ -307,9 +307,9 @@ function selectElement(el) {
 
 // Deselect only when clicking outside both the canvas AND the toolbar
 document.addEventListener("mousedown", e => {
-  const isText    = e.target.closest(".text")
+  const isText = e.target.closest(".text")
   const isToolbar = e.target.closest(".toolbar")
-  const isHeader  = e.target.closest(".header")
+  const isHeader = e.target.closest(".header")
   if (!isText && !isToolbar && !isHeader) selectElement(null)
 })
 
@@ -320,17 +320,17 @@ function makeInteractive(el) {
   let startX, startY, startLeft, startTop, startW, startH
 
   const handle = el.querySelector(".drag-handle")
-  const grip   = el.querySelector(".resize-grip")
+  const grip = el.querySelector(".resize-grip")
 
   /* drag via handle */
   handle.addEventListener("mousedown", e => {
     e.preventDefault()
     selectElement(el)
-    mode   = "drag"
+    mode = "drag"
     startX = e.clientX
     startY = e.clientY
     startLeft = parseInt(el.style.left) || 0
-    startTop  = parseInt(el.style.top)  || 0
+    startTop = parseInt(el.style.top) || 0
   })
 
   /* resize via grip */
@@ -338,7 +338,7 @@ function makeInteractive(el) {
     e.preventDefault()
     e.stopPropagation()
     selectElement(el)
-    mode   = "resize"
+    mode = "resize"
     startX = e.clientX
     startY = e.clientY
     startW = el.offsetWidth
@@ -353,17 +353,17 @@ function makeInteractive(el) {
     const dy = e.clientY - startY
 
     if (mode === "drag") {
-      const maxX = canvasRect.width  - el.offsetWidth
+      const maxX = canvasRect.width - el.offsetWidth
       const maxY = canvasRect.height - el.offsetHeight
       el.style.left = Math.max(0, Math.min(startLeft + dx, maxX)) + "px"
-      el.style.top  = Math.max(0, Math.min(startTop  + dy, maxY)) + "px"
+      el.style.top = Math.max(0, Math.min(startTop + dy, maxY)) + "px"
     }
 
     if (mode === "resize") {
       const minW = 80, minH = 28
-      const maxW = canvasRect.width  - parseInt(el.style.left)
+      const maxW = canvasRect.width - parseInt(el.style.left)
       const maxH = canvasRect.height - parseInt(el.style.top)
-      el.style.width  = Math.max(minW, Math.min(startW + dx, maxW)) + "px"
+      el.style.width = Math.max(minW, Math.min(startW + dx, maxW)) + "px"
       el.style.height = Math.max(minH, Math.min(startH + dy, maxH)) + "px"
     }
   })
@@ -381,10 +381,10 @@ function buildTextElement(opts = {}) {
   el.className = "text"
   if (opts.classes) opts.classes.forEach(c => el.classList.add(c))
 
-  el.style.left  = (typeof opts.left  === 'number' ? opts.left  : parseInt(opts.left)  || 220) + "px"
-  el.style.top   = (typeof opts.top   === 'number' ? opts.top   : parseInt(opts.top)   || 80)  + "px"
-  if (opts.width)  el.style.width  = (parseInt(opts.width)  || 200) + "px"
-  if (opts.height) el.style.height = (parseInt(opts.height) || 0)   + "px"
+  el.style.left = (typeof opts.left === 'number' ? opts.left : parseInt(opts.left) || 220) + "px"
+  el.style.top = (typeof opts.top === 'number' ? opts.top : parseInt(opts.top) || 80) + "px"
+  if (opts.width) el.style.width = (parseInt(opts.width) || 200) + "px"
+  if (opts.height) el.style.height = (parseInt(opts.height) || 0) + "px"
 
   const handle = document.createElement("div")
   handle.className = "drag-handle"
@@ -394,12 +394,12 @@ function buildTextElement(opts = {}) {
   content.contentEditable = "true"
 
   // Restore from session (innerHTML) or use plain text default
-  if (opts.html)       content.innerHTML         = opts.html
-  else                 content.innerText          = opts.text ?? "New Text"
-  if (opts.fontSize)   content.style.fontSize    = opts.fontSize
-  if (opts.fontFamily) content.style.fontFamily  = opts.fontFamily
-  if (opts.color)      content.style.color       = opts.color
-  if (opts.fontWeight) content.style.fontWeight  = opts.fontWeight
+  if (opts.html) content.innerHTML = opts.html
+  else content.innerText = opts.text ?? "New Text"
+  if (opts.fontSize) content.style.fontSize = opts.fontSize
+  if (opts.fontFamily) content.style.fontFamily = opts.fontFamily
+  if (opts.color) content.style.color = opts.color
+  if (opts.fontWeight) content.style.fontWeight = opts.fontWeight
 
   const grip = document.createElement("div")
   grip.className = "resize-grip"
@@ -435,9 +435,9 @@ function buildTextElement(opts = {}) {
 function buildImageElement(opts = {}) {
   const el = document.createElement("div")
   el.className = "text img-element"
-  el.style.left   = (opts.left ?? 10) + "px"
-  el.style.top    = (opts.top  ?? 10) + "px"
-  el.style.width  = (opts.width  ?? 100) + "px"
+  el.style.left = (opts.left ?? 10) + "px"
+  el.style.top = (opts.top ?? 10) + "px"
+  el.style.width = (opts.width ?? 100) + "px"
   el.style.height = (opts.height ?? 100) + "px"
 
   const handle = document.createElement("div")
@@ -445,8 +445,8 @@ function buildImageElement(opts = {}) {
 
   const img = document.createElement("img")
   img.src = opts.src
-  img.style.width   = "100%"
-  img.style.height  = "100%"
+  img.style.width = "100%"
+  img.style.height = "100%"
   img.style.objectFit = "cover"
   img.style.borderRadius = "50%"
   img.style.display = "block"
@@ -522,7 +522,7 @@ resume.addEventListener("contextmenu", e => {
   // Position the menu at cursor using page coords
   menu.style.display = "block"
   menu.style.left = (e.clientX + window.scrollX) + "px"
-  menu.style.top  = (e.clientY + window.scrollY) + "px"
+  menu.style.top = (e.clientY + window.scrollY) + "px"
 })
 
 /* single unified document click handler */
@@ -582,8 +582,8 @@ async function generatePDF() {
   selectElement(null)
 
   const sizeKey = localStorage.getItem(PAPER_KEY) || 'a4'
-  const size    = PAPER_SIZES[sizeKey]
-  const token   = localStorage.getItem('profile_token')
+  const size = PAPER_SIZES[sizeKey]
+  const token = localStorage.getItem('profile_token')
 
   try {
     const resumeHTML = document.getElementById('resume').outerHTML
@@ -608,9 +608,9 @@ async function generatePDF() {
     }
 
     const blob = await res.blob()
-    const url  = URL.createObjectURL(blob)
-    const a    = document.createElement('a')
-    a.href     = url
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
     a.download = 'resume.pdf'
     a.click()
     URL.revokeObjectURL(url)

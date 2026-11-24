@@ -4,23 +4,23 @@ initResumeEditor({
   renderFromFormData({ data, buildTextElement, buildHtmlElement, buildImageElement }) {
 
     const SIDEBAR_W = 260
-    const MAIN_L    = 260
-    const MAIN_W    = 495
-    const PAGE_H    = 1123
+    const MAIN_L = 260
+    const MAIN_W = 495
+    const PAGE_H = 1123
 
     const fontFamily = data.fontFamily || "'DM Sans', sans-serif"
-    const fontSize   = parseFloat(data.fontSize) || 12
+    const fontSize = parseFloat(data.fontSize) || 12
 
     // Accent colors from saved data
-    const accentDark  = data.accentDark  || localStorage.getItem('profile_accent_dark')  || '#EDEAE3'
+    const accentDark = data.accentDark || localStorage.getItem('profile_accent_dark') || '#EDEAE3'
     const accentLight = data.accentLight || localStorage.getItem('profile_accent_light') || '#8FB89A'
 
     // Determine if sidebar is dark (needs light text) or light (keep dark text)
     const isDark = accentDark !== '#EDEAE3' && accentDark !== '#F0EDE5'
-    const sidebarText    = isDark ? '#ccc'     : '#7A776E'
-    const sidebarLabel   = isDark ? '#fff'     : '#2B3A2E'
-    const sidebarBorder  = isDark ? 'rgba(255,255,255,0.2)' : '#D4CFC4'
-    const sidebarSubtext = isDark ? '#aaa'     : '#7A776E'
+    const sidebarText = isDark ? '#ccc' : '#7A776E'
+    const sidebarLabel = isDark ? '#fff' : '#2B3A2E'
+    const sidebarBorder = isDark ? 'rgba(255,255,255,0.2)' : '#D4CFC4'
+    const sidebarSubtext = isDark ? '#aaa' : '#7A776E'
 
     // SIDEBAR BACKGROUND
     buildHtmlElement({
@@ -60,7 +60,7 @@ initResumeEditor({
       eduData.forEach(edu => {
         if (!edu.school && !edu.course) return
         eduHTML += `<div style="margin-bottom:10px;">`
-        if (edu.year)   eduHTML += `<div style="font-size:${fontSize - 3}px;color:${sidebarSubtext};margin-bottom:2px;">${edu.year}</div>`
+        if (edu.year) eduHTML += `<div style="font-size:${fontSize - 3}px;color:${sidebarSubtext};margin-bottom:2px;">${edu.year}</div>`
         if (edu.course) eduHTML += `<div style="font-size:${fontSize - 2}px;font-weight:600;color:${sidebarLabel};line-height:1.3;">${edu.course}</div>`
         if (edu.school) eduHTML += `<div style="font-size:${fontSize - 2}px;color:${sidebarText};font-style:italic;">${edu.school}</div>`
         eduHTML += `</div>`
@@ -98,7 +98,7 @@ initResumeEditor({
         if (!cert.name && !cert.org) return
         certHTML += `<div style="margin-bottom:6px;">
           <div style="font-size:${fontSize - 2}px;font-weight:600;color:${sidebarLabel};">${cert.name || ''}</div>
-          ${cert.org  ? `<div style="font-size:${fontSize - 3}px;color:${sidebarText};">${cert.org}</div>`  : ''}
+          ${cert.org ? `<div style="font-size:${fontSize - 3}px;color:${sidebarText};">${cert.org}</div>` : ''}
           ${cert.date ? `<div style="font-size:${fontSize - 3}px;color:${sidebarSubtext};">${cert.date}</div>` : ''}
         </div>`
       })
@@ -107,8 +107,8 @@ initResumeEditor({
 
     // Contact
     let contactHTML = ''
-    if (data.email)    contactHTML += `<div style="font-size:${fontSize - 2.5}px;color:${sidebarText};margin-bottom:4px;word-break:break-all;">📧 ${data.email}</div>`
-    if (data.phone)    contactHTML += `<div style="font-size:${fontSize - 2.5}px;color:${sidebarText};margin-bottom:4px;">📞 ${data.phone}</div>`
+    if (data.email) contactHTML += `<div style="font-size:${fontSize - 2.5}px;color:${sidebarText};margin-bottom:4px;word-break:break-all;">📧 ${data.email}</div>`
+    if (data.phone) contactHTML += `<div style="font-size:${fontSize - 2.5}px;color:${sidebarText};margin-bottom:4px;">📞 ${data.phone}</div>`
     if (data.location) contactHTML += `<div style="font-size:${fontSize - 2.5}px;color:${sidebarText};margin-bottom:4px;">📍 ${data.location}</div>`
     if (contactHTML) sidebarHTML += sidebarSection('Contact', contactHTML)
 
@@ -168,7 +168,7 @@ initResumeEditor({
               ${job.duration ? `<div style="font-size:${fontSize - 2}px;color:#7A776E;white-space:nowrap;">${job.duration}</div>` : ''}
             </div>
             ${job.company ? `<div style="font-size:${fontSize - 1}px;color:#555;font-style:italic;margin-bottom:2px;">${job.company}</div>` : ''}
-            ${job.desc    ? `<div style="font-size:${fontSize - 1}px;color:#444;line-height:1.5;">${job.desc}</div>` : ''}
+            ${job.desc ? `<div style="font-size:${fontSize - 1}px;color:#444;line-height:1.5;">${job.desc}</div>` : ''}
           </div>
         </div>`
       })
@@ -180,7 +180,7 @@ initResumeEditor({
       data.awards.forEach(award => {
         if (!award.name && !award.issuer) return
         mainHTML += `<div style="background:#F7F5F0;padding:8px 10px;border-left:3px solid ${accentLight};">
-          ${award.year   ? `<div style="font-size:${fontSize - 3}px;color:#7A776E;">${award.year}</div>` : ''}
+          ${award.year ? `<div style="font-size:${fontSize - 3}px;color:#7A776E;">${award.year}</div>` : ''}
           <div style="font-weight:600;font-size:${fontSize - 1}px;">${award.name || ''}</div>
           ${award.issuer ? `<div style="font-size:${fontSize - 2}px;color:#555;">${award.issuer}</div>` : ''}
         </div>`

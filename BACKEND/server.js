@@ -108,7 +108,7 @@ function rateLimit({ windowMs, max, message }) {
   }
 }
 
-const aiLimiter  = rateLimit({ windowMs: 60_000, max: 5,  message: 'AI limit reached, try again in a minute' })
+const aiLimiter = rateLimit({ windowMs: 60_000, max: 5, message: 'AI limit reached, try again in a minute' })
 const pdfLimiter = rateLimit({ windowMs: 60_000, max: 10, message: 'PDF limit reached, try again in a minute' })
 
 // ── AUTH ROUTES ──
@@ -195,11 +195,11 @@ app.post('/api/onboard', requireAuth, async (req, res) => {
 app.post(['/api/generate-summary', '/api/ai/summary', '/api/ai/generate-summary'], requireAuth, aiLimiter, async (req, res) => {
   if (!process.env.GROQ_API_KEY) return res.status(503).json({ error: 'AI is not configured' })
 
-  const jobTitle   = clean(req.body.jobTitle, 80)
-  const name       = clean(req.body.name, 80)
-  const skills     = clean(req.body.skills, 200)
+  const jobTitle = clean(req.body.jobTitle, 80)
+  const name = clean(req.body.name, 80)
+  const skills = clean(req.body.skills, 200)
   const experience = clean(req.body.experience, 60)
-  const tone       = clean(req.body.tone, 40) || 'Professional'
+  const tone = clean(req.body.tone, 40) || 'Professional'
 
   if (!jobTitle) return res.status(400).json({ error: 'Job title is required' })
 
@@ -370,11 +370,11 @@ app.get('/admin/audit', requireAdmin, async (req, res) => {
 
 // ── PDF GENERATION ──
 const cssMap = {}
-;[1, 2, 3, 4].forEach(n => {
-  const file = path.join(FRONTEND, n === 1 ? 'style.css' : `style${n}.css`)
-  try { cssMap[n] = fs.readFileSync(file, 'utf8') }
-  catch { console.warn(`Could not load ${path.basename(file)}`); cssMap[n] = '' }
-})
+  ;[1, 2, 3, 4].forEach(n => {
+    const file = path.join(FRONTEND, n === 1 ? 'style.css' : `style${n}.css`)
+    try { cssMap[n] = fs.readFileSync(file, 'utf8') }
+    catch { console.warn(`Could not load ${path.basename(file)}`); cssMap[n] = '' }
+  })
 
 // Reuse one Browserless connection instead of reconnecting on every download
 let browserPromise = null
@@ -454,7 +454,7 @@ html, body { width: ${pdfW}px; height: ${pdfH}px; overflow: hidden; background: 
     console.error('PDF error:', err.message)
     res.status(500).send('PDF generation failed: ' + err.message)
   } finally {
-    if (page) await page.close().catch(() => {})
+    if (page) await page.close().catch(() => { })
   }
 })
 
