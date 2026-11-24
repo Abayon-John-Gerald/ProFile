@@ -49,8 +49,9 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     if (opts.html) content.innerHTML = opts.html
     else content.innerText = opts.text ?? ''
 
-    // We no longer apply fontSize and fontFamily here. 
-    // We will let a global CSS rule handle it so it affects EVERYTHING.
+    // Font FAMILY comes from the global override below so the selected font applies everywhere.
+    // Font SIZE is set per element so headings keep their size relative to body text.
+    if (opts.fontSize) content.style.fontSize = opts.fontSize
     if (opts.color) content.style.color = opts.color
     if (opts.fontWeight) content.style.fontWeight = opts.fontWeight
 
@@ -115,22 +116,16 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
       }
 
       const selectedFont = data.fontFamily || "'DM Sans', sans-serif";
-      const selectedSize = data.fontSize || 12;
 
       styleTag.innerHTML = `
-        /* Force the font family on the entire resume */
+        /* Force the selected font family on the entire resume (names included) */
         #resume, #resume * {
           font-family: ${selectedFont} !important;
         }
-        /* Scale font sizes proportionally based on user selection (base 12px) */
+        /* Long words (emails etc.) wrap instead of running out of their column */
         #resume .text-content {
-          font-size: ${selectedSize}px !important;
           overflow-wrap: anywhere;
           word-break: break-word;
-        }
-        #resume [style*="font-size"] {
-          /* Remove hardcoded inline font sizes */
-          font-size: inherit !important; 
         }
       `;
       // ------------------------------------------------------------------------
