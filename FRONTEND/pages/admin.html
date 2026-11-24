@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - ProFile</title>
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+
+<body>
+  <script src="../js/auth-guard.js"></script>
+
+  <header class="header">
+    <div class="header-logo">Pro<span>File</span> Admin</div>
+    <div class="header-right">
+      <button onclick="goBack()" class="btn-reset">Sign Out</button>
+    </div>
+  </header>
+
+  <div class="dashboard">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>Total Users</h3>
+        <div class="num" id="statUsers">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Total Resumes</h3>
+        <div class="num" id="statResumes">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Audit Logs</h3>
+        <div class="num" id="statLogs">0</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Registered Users</h2>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Joined</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Audit Logs</h2>
+        <button class="btn-reset" onclick="loadLogs()" style="color:#2B3A2E;border-color:#D4CFC4;">Refresh Logs</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Action</th>
+            <th>Details</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="logsTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="../js/admin.js"></script>
+</body>
+
+</html>
