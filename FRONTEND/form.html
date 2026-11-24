@@ -1077,20 +1077,23 @@
     window.currentAccentLight = savedLight || TEMPLATE_DEFAULTS[templateNum].light;
 
     document.addEventListener("DOMContentLoaded", () => {
-      // Visually highlight the correct color swatch on load
+      // Clear active states
       document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
 
-      // If the current color matches a swatch, highlight it
+      // Find the swatch that matches the saved dark color
+      let matchedSwatch = null;
       document.querySelectorAll('.color-swatch').forEach(s => {
-        if (s.dataset.color === window.currentAccentDark) {
+        // s.dataset.color is the hex code on the swatch
+        if (s.dataset.color && s.dataset.color.toLowerCase() === window.currentAccentDark.toLowerCase()) {
           s.classList.add('active');
+          matchedSwatch = s;
         }
       });
 
-      // Ensure the live preview shows the correct colors immediately
-      if (typeof applyAccentColor === 'function') {
-        applyAccentColor(window.currentAccentDark, window.currentAccentLight, document.querySelector('.color-swatch.active'));
-      }
+      // FORCE the colors to apply to the preview right away
+      setTimeout(() => {
+        applyAccentColor(window.currentAccentDark, window.currentAccentLight, matchedSwatch);
+      }, 100); // Slight delay ensures the preview elements are fully built
     });
 
     let photoBase64 = null

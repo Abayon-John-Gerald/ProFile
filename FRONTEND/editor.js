@@ -48,8 +48,8 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     if (opts.html) content.innerHTML = opts.html
     else content.innerText = opts.text ?? ''
 
-    if (opts.fontSize) content.style.fontSize = opts.fontSize
-    if (opts.fontFamily) content.style.fontFamily = opts.fontFamily
+    // We no longer apply fontSize and fontFamily here. 
+    // We will let a global CSS rule handle it so it affects EVERYTHING.
     if (opts.color) content.style.color = opts.color
     if (opts.fontWeight) content.style.fontWeight = opts.fontWeight
 
@@ -93,18 +93,43 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
       localStorage.removeItem('profile_form_data')
       applyPaperSize(data.paperSize || 'a4')
 
-      // --- FIX: Inject Font Loader ---
+      // --- FIX: Load the selected font dynamically from Google Fonts ---
       if (data.fontFamily) {
-        const fontName = data.fontFamily.replace(/'/g, '').split(',')[0];
-        if (!document.getElementById('dynamic-font-loader')) {
+        const fontName = data.fontFamily.replace(/'/g, '').split(',')[0].trim();
+        if (fontName && fontName !== 'Times New Roman' && fontName !== 'Georgia') {
           const link = document.createElement('link');
-          link.id = 'dynamic-font-loader';
           link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/ /g, '+')}:wght@300;400;500;700&display=swap`;
           link.rel = 'stylesheet';
           document.head.appendChild(link);
         }
       }
-      // ------------------------------
+
+      // --- FIX: Override ALL fonts and sizes globally based on user selection ---
+      let styleTag = document.getElementById('global-font-override');
+      if (!styleTag) {
+        styleTag = document.createElement('style');
+        styleTag.id = 'global-font-override';
+        document.head.appendChild(styleTag);
+      }
+
+      const selectedFont = data.fontFamily || "'DM Sans', sans-serif";
+      const selectedSize = data.fontSize || 12;
+
+      styleTag.innerHTML = `
+        /* Force the font family on the entire resume */
+        #resume, #resume * {
+          font-family: ${selectedFont} !important;
+        }
+        /* Scale font sizes proportionally based on user selection (base 12px) */
+        #resume .text-content {
+          font-size: ${selectedSize}px !important;
+        }
+        #resume [style*="font-size"] {
+          /* Remove hardcoded inline font sizes */
+          font-size: inherit !important; 
+        }
+      `;
+      // ------------------------------------------------------------------------
 
       document.querySelectorAll('#resume .text').forEach(el => el.remove())
       const resumeEl = document.getElementById('resume')
@@ -174,82 +199,28 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     }
   }
 
-  // --- FAILSAFE DIRECT PRINT ---
   window.printResume = function () {
     const printStyle = document.createElement('style');
     printStyle.id = 'dynamic-print-style';
     printStyle.innerHTML = `
       @media print {
-        /* Force standard A4 size with 0 margins */
-        @page { 
-          size: A4 portrait; 
-          margin: 0 !important; 
-        }
-        
-        /* Reset body and html to strictly hide any overflow */
-        html, body { 
-          width: 100% !important;
-          height: 100% !important;
-          margin: 0 !important; 
-          padding: 0 !important; 
-          overflow: hidden !important; 
-          background: white !important;
-        }
-
-        /* Hide EVERYTHING except the resume container */
-        body > *:not(.canvas-area) {
-          display: none !important;
-        }
-
-        /* Reset the canvas area wrapper */
-        .canvas-area { 
-          display: block !important;
-          position: static !important;
-          margin: 0 !important; 
-          padding: 0 !important; 
-          transform: none !important;
-          width: 100% !important;
-          height: 100% !important;
-          overflow: hidden !important;
-        }
-        
-        /* Lock the resume to the exact page size */
-        #resume { 
-          display: block !important;
-          position: relative !important;
-          top: 0 !important; 
-          left: 0 !important; 
-          box-shadow: none !important; 
-          transform: none !important; /* Remove the mobile scaling */
-          margin: 0 !important;
-          border: none !important;
-          page-break-after: avoid !important;
-          page-break-before: avoid !important;
-          page-break-inside: avoid !important;
-          overflow: hidden !important;
-        }
-        
-        /* Force background colors to print */
-        * { 
-          -webkit-print-color-adjust: exact !important; 
-          print-color-adjust: exact !important; 
-        }
+        @page { size: A4 portrait; margin: 0; }
+        html, body { width: 100% !important; height: 100% !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; background: white !important; }
+        body > *:not(.canvas-area) { display: none !important; }
+        .canvas-area { display: block !important; position: static !important; margin: 0 !important; padding: 0 !important; transform: none !important; width: 100% !important; height: 100% !important; overflow: hidden !important; }
+        #resume { display: block !important; position: relative !important; top: 0 !important; left: 0 !important; box-shadow: none !important; transform: none !important; margin: 0 !important; border: none !important; page-break-after: avoid !important; page-break-inside: avoid !important; overflow: hidden !important; }
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       }
     `;
     document.head.appendChild(printStyle);
-
-    setTimeout(() => {
-      window.print();
-
-      setTimeout(() => {
-        const el = document.getElementById('dynamic-print-style');
-        if (el) el.remove();
-      }, 1000);
-    }, 150);
+    setTimeout(() => { window.print(); setTimeout(() => { const el = document.getElementById('dynamic-print-style'); if (el) el.remove(); }, 1000); }, 150);
   }
 
-  // --- FIXED: SMART QUICK SHARE (Desktop & Mobile) ---
+  // --- SMART QUICK SHARE (Mobile & Desktop) ---
   window.shareResume = async function (e) {
+    // 1. Trigger the browser's user gesture immediately
+    if (e && e.preventDefault) e.preventDefault();
+
     const sizeKey = localStorage.getItem(PAPER_KEY) || 'a4'
     const size = PAPER_SIZES[sizeKey]
     const token = localStorage.getItem('profile_token')
@@ -263,6 +234,7 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     }
 
     try {
+      // 2. Fetch PDF from backend
       const res = await fetch(`${SERVER}/generate-pdf`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -276,14 +248,11 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
 
       if (!res.ok) throw new Error('Could not generate PDF')
 
-      // Get the blob and explicitly set the type
       const arrayBuffer = await res.arrayBuffer();
       const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
-
-      // Create the File object
       const file = new File([blob], 'My_Resume.pdf', { type: 'application/pdf' });
 
-      // Check if the device supports sharing files
+      // 3. Check if the browser supports native file sharing
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
@@ -291,8 +260,10 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
           text: 'Here is my resume generated from ProFile.'
         })
       } else {
-        // Fallback for Desktop (Windows/Mac)
-        alert('Direct file sharing is only supported on mobile devices. Your PDF will download instead so you can send it manually.')
+        // 4. Fallback for Desktop (Laptop/PC)
+        alert('Direct file sharing is not supported on this desktop browser. Your PDF will download instead.')
+
+        // Auto-download instead of failing
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
@@ -302,6 +273,7 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
       }
     } catch (err) {
       console.error('Share error:', err)
+      // If the user just clicked "Cancel" on the share menu, don't show an error
       if (err.name !== 'AbortError') {
         alert('Could not share the resume. Please try downloading it instead.')
       }
