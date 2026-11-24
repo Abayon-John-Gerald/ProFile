@@ -1,25 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ProFile Beta — Minimal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="style3.css">
 </head>
+
 <body>
 
   <header class="header">
-    <div class="header-logo">Pro<span>File</span> <span style="font-size:11px;opacity:0.5;font-family:'DM Sans',sans-serif;font-weight:300;letter-spacing:0.1em;">BETA</span></div>
+    <div class="header-logo">Pro<span>File</span> <span
+        style="font-size:11px;opacity:0.5;font-family:'DM Sans',sans-serif;font-weight:300;letter-spacing:0.1em;">BETA</span>
+    </div>
     <div class="header-right">
-      <a href="/" style="font-size:12px;color:rgba(237,233,223,0.5);text-decoration:none;padding:5px 10px;border:1px solid rgba(237,233,223,0.15);border-radius:6px;margin-right:4px;">← Back</a>
+      <a href="/"
+        style="font-size:12px;color:rgba(237,233,223,0.5);text-decoration:none;padding:5px 10px;border:1px solid rgba(237,233,223,0.15);border-radius:6px;margin-right:4px;">←
+        Back</a>
       <button id="modeSwitchBtn" onclick="setMode(editMode ? 'preview' : 'edit')" class="btn-reset">✏️ Edit</button>
       <button class="btn-reset" onclick="resetSession()" title="Clear canvas and start over">Reset</button>
-      <button class="btn-download" onclick="printResume()" style="background:#4A5568; margin-right:5px;">🖨 Print</button>
+      <button class="btn-download" onclick="printResume()"
+        style="background:#4A5568; color:white; margin-right:5px; display:inline-flex; align-items:center; gap:6px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 6 2 18 2 18 9" />
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+          <rect x="6" y="14" width="12" height="8" />
+        </svg>
+        Print
+      </button>
       <button class="btn-download" onclick="generatePDF()">↓ Download PDF</button>
-      <button class="btn-download" onclick="shareResume()" style="background:#8FB89A; margin-right:5px;">📤 Share</button>
+      <button class="btn-download" onclick="shareResume()"
+        style="background:#8FB89A; color:#1A1A18; margin-right:5px; display:inline-flex; align-items:center; gap:6px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+          <polyline points="16 6 12 2 8 6" />
+          <line x1="12" y1="2" x2="12" y2="15" />
+        </svg>
+        Share
+      </button>
     </div>
   </header>
 
@@ -39,9 +64,19 @@
     <div class="toolbar-sep"></div>
     <input list="fontSizes" id="fontSizeInput" placeholder="Size" title="Font size" oninput="applyFontSize()">
     <datalist id="fontSizes">
-      <option value="10"><option value="11"><option value="12"><option value="13">
-      <option value="14"><option value="16"><option value="18"><option value="20">
-      <option value="24"><option value="28"><option value="32"><option value="40"><option value="48">
+      <option value="10">
+      <option value="11">
+      <option value="12">
+      <option value="13">
+      <option value="14">
+      <option value="16">
+      <option value="18">
+      <option value="20">
+      <option value="24">
+      <option value="28">
+      <option value="32">
+      <option value="40">
+      <option value="48">
     </datalist>
     <div class="toolbar-sep"></div>
     <input type="color" onchange="changeColor(this.value)" title="Text color" value="#1a1a18">
@@ -70,7 +105,7 @@
 
       <div class="text contact-line">
         <div class="drag-handle"></div>
-        <div class="text-content" contenteditable="true">email@example.com  ·  +63 912 345 6789</div>
+        <div class="text-content" contenteditable="true">email@example.com · +63 912 345 6789</div>
         <div class="resize-grip"></div>
       </div>
 
@@ -89,4 +124,5 @@
 
   <script src="script3.js"></script>
 </body>
+
 </html>

@@ -1,24 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ProFile — Modern Header</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="style2.css">
   <link rel="stylesheet" href="home.css">
 </head>
+
 <body>
   <script src="auth-guard.js"></script>
   <header class="header">
-    <div class="header-logo">Pro<span>File</span> <span style="font-size:11px;opacity:0.5;font-family:'DM Sans',sans-serif;font-weight:300;letter-spacing:0.1em;"></span></div>
+    <div class="header-logo">Pro<span>File</span> <span
+        style="font-size:11px;opacity:0.5;font-family:'DM Sans',sans-serif;font-weight:300;letter-spacing:0.1em;"></span>
+    </div>
     <div class="header-right">
       <a class="btn-ghost" href="my-resume.html">Saved Resumes</a>
-      <button class="btn-download" onclick="printResume()" style="background:#4A5568; margin-right:5px;">🖨 Print</button>
+      <button class="btn-download" onclick="printResume()"
+        style="background:#4A5568; color:white; margin-right:5px; display:inline-flex; align-items:center; gap:6px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 6 2 18 2 18 9" />
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+          <rect x="6" y="14" width="12" height="8" />
+        </svg>
+        Print
+      </button>
       <button class="btn-download" onclick="generatePDF()">↓ Download PDF</button>
-      <button class="btn-download" onclick="shareResume()" style="background:#8FB89A; margin-right:5px;">📤 Share</button>
+      <button class="btn-download" onclick="shareResume()"
+        style="background:#8FB89A; color:#1A1A18; margin-right:5px; display:inline-flex; align-items:center; gap:6px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+          <polyline points="16 6 12 2 8 6" />
+          <line x1="12" y1="2" x2="12" y2="15" />
+        </svg>
+        Share
+      </button>
       <button onclick="logout()" class="btn-reset">Sign Out</button>
     </div>
   </header>
@@ -28,4 +52,5 @@
   <script src="editor.js"></script>
   <script src="template2.js"></script>
 </body>
+
 </html>

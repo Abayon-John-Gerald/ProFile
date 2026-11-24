@@ -4,7 +4,7 @@ initResumeEditor({
   renderFromFormData({ data, buildTextElement, buildHtmlElement, buildImageElement }) {
 
     const fontFamily = data.fontFamily || "'DM Sans', sans-serif"
-    const fontSize   = parseFloat(data.fontSize) || 12
+    const fontSize = parseFloat(data.fontSize) || 12
 
     function section(title, body) {
       if (!body) return ''
@@ -26,7 +26,7 @@ initResumeEditor({
       return `<div style="margin-bottom:5px;font-size:${fontSize}px;">
         <div style="font-weight:bold;">${job.title || ''}${job.company ? ' — ' + job.company : ''}</div>
         ${job.duration ? `<div style="font-size:${fontSize - 1}px;color:#7A776E;">${job.duration}</div>` : ''}
-        ${job.desc     ? `<div style="margin-top:2px;font-size:${fontSize - 1}px;">${job.desc}</div>` : ''}
+        ${job.desc ? `<div style="margin-top:2px;font-size:${fontSize - 1}px;">${job.desc}</div>` : ''}
       </div>`
     })
 
@@ -35,7 +35,7 @@ initResumeEditor({
       return `<div style="margin-bottom:6px;font-size:${fontSize}px;">
         ${edu.school ? `<div style="font-weight:bold;">${edu.school}</div>` : ''}
         ${edu.course ? `<div>${edu.course}</div>` : ''}
-        ${edu.year   ? `<div style="font-size:${fontSize - 1}px;color:#7A776E;">${edu.year}</div>` : ''}
+        ${edu.year ? `<div style="font-size:${fontSize - 1}px;color:#7A776E;">${edu.year}</div>` : ''}
       </div>`
     })
 
@@ -43,7 +43,7 @@ initResumeEditor({
       if (!cert.name && !cert.org) return ''
       return `<div style="margin-bottom:6px;font-size:${fontSize}px;">
         ${cert.name ? `<div style="font-weight:bold;">${cert.name}</div>` : ''}
-        ${cert.org  ? `<div>${cert.org}</div>` : ''}
+        ${cert.org ? `<div>${cert.org}</div>` : ''}
         ${cert.date ? `<div style="font-size:${fontSize - 1}px;color:#7A776E;">${cert.date}</div>` : ''}
       </div>`
     })
@@ -51,9 +51,9 @@ initResumeEditor({
     const awardHTML = renderEntries(data.awards || [], award => {
       if (!award.name && !award.issuer) return ''
       return `<div style="margin-bottom:6px;font-size:${fontSize}px;">
-        ${award.name   ? `<div style="font-weight:bold;">${award.name}</div>` : ''}
+        ${award.name ? `<div style="font-weight:bold;">${award.name}</div>` : ''}
         ${award.issuer ? `<div>${award.issuer}</div>` : ''}
-        ${award.year   ? `<div style="font-size:${fontSize - 1}px;color:#7A776E;">${award.year}</div>` : ''}
+        ${award.year ? `<div style="font-size:${fontSize - 1}px;color:#7A776E;">${award.year}</div>` : ''}
       </div>`
     })
 
@@ -82,8 +82,8 @@ initResumeEditor({
 
     // Contact line
     const contactParts = []
-    if (data.email)    contactParts.push(`Email: ${data.email}`)
-    if (data.phone)    contactParts.push(`Phone: ${data.phone}`)
+    if (data.email) contactParts.push(`Email: ${data.email}`)
+    if (data.phone) contactParts.push(`Phone: ${data.phone}`)
     if (data.location) contactParts.push(`Location: ${data.location}`)
     buildTextElement({
       classes: ['contact-line'],

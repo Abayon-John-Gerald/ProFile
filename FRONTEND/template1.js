@@ -4,15 +4,15 @@ initResumeEditor({
   renderFromFormData({ data, buildTextElement, buildHtmlElement, buildImageElement }) {
 
     const SIDEBAR_W = 220
-    const MAIN_L    = 240
-    const MAIN_W    = 530
+    const MAIN_L = 240
+    const MAIN_W = 530
 
     const fontFamily = data.fontFamily || "'DM Sans', sans-serif"
-    const fontSize   = parseFloat(data.fontSize) || 12
+    const fontSize = parseFloat(data.fontSize) || 12
 
     // Accent colors from saved data
-   const accentDark  = data.accentDark  || localStorage.getItem('profile_accent_dark')  || '#2C2C2C'
-   const accentLight = data.accentLight || localStorage.getItem('profile_accent_light') || '#8FB89A'
+    const accentDark = data.accentDark || localStorage.getItem('profile_accent_dark') || '#2C2C2C'
+    const accentLight = data.accentLight || localStorage.getItem('profile_accent_light') || '#8FB89A'
 
     // SIDEBAR BACKGROUND
     buildHtmlElement({
@@ -42,7 +42,7 @@ initResumeEditor({
       eduData.forEach(edu => {
         if (!edu.school && !edu.course) return
         sidebarHTML += `<div style="margin-bottom:10px;">`
-        if (edu.year)   sidebarHTML += `<div style="font-size:${fontSize - 3}px;color:#999;margin-bottom:2px;">${edu.year}</div>`
+        if (edu.year) sidebarHTML += `<div style="font-size:${fontSize - 3}px;color:#999;margin-bottom:2px;">${edu.year}</div>`
         if (edu.course) sidebarHTML += `<div style="font-size:${fontSize - 2}px;font-weight:600;color:#fff;text-transform:uppercase;line-height:1.3;">${edu.course}</div>`
         if (edu.school) sidebarHTML += `<div style="font-size:${fontSize - 2}px;color:#ccc;font-style:italic;">${edu.school}</div>`
         sidebarHTML += `</div>`
@@ -75,8 +75,8 @@ initResumeEditor({
 
     // Contact
     sidebarHTML += `<div style="font-size:${fontSize - 3}px;font-weight:600;color:${accentLight};letter-spacing:0.12em;text-transform:uppercase;margin-bottom:8px;">Contact</div>`
-    if (data.email)    sidebarHTML += `<div style="font-size:${fontSize - 2.5}px;color:#ccc;margin-bottom:4px;word-break:break-all;">📧 ${data.email}</div>`
-    if (data.phone)    sidebarHTML += `<div style="font-size:${fontSize - 2.5}px;color:#ccc;margin-bottom:4px;">📞 ${data.phone}</div>`
+    if (data.email) sidebarHTML += `<div style="font-size:${fontSize - 2.5}px;color:#ccc;margin-bottom:4px;word-break:break-all;">📧 ${data.email}</div>`
+    if (data.phone) sidebarHTML += `<div style="font-size:${fontSize - 2.5}px;color:#ccc;margin-bottom:4px;">📞 ${data.phone}</div>`
     if (data.location) sidebarHTML += `<div style="font-size:${fontSize - 2.5}px;color:#ccc;margin-bottom:4px;">📍 ${data.location}</div>`
 
     sidebarHTML += `</div></div>`
@@ -122,7 +122,7 @@ initResumeEditor({
               ${job.duration ? `<div style="font-size:${fontSize - 2}px;color:#7A776E;white-space:nowrap;">${job.duration}</div>` : ''}
             </div>
             ${job.company ? `<div style="font-size:${fontSize - 1}px;color:#555;font-style:italic;margin-bottom:3px;">${job.company}</div>` : ''}
-            ${job.desc    ? `<div style="font-size:${fontSize - 1}px;color:#444;line-height:1.5;">${job.desc}</div>` : ''}
+            ${job.desc ? `<div style="font-size:${fontSize - 1}px;color:#444;line-height:1.5;">${job.desc}</div>` : ''}
           </div>
         </div>`
       })
@@ -134,7 +134,7 @@ initResumeEditor({
         if (!cert.name && !cert.org) return
         mainHTML += `<div style="margin-bottom:6px;">
           <div style="font-weight:600;font-size:${fontSize - 0.5}px;">${cert.name || ''}</div>
-          ${cert.org  ? `<div style="font-size:${fontSize - 1}px;color:#555;">${cert.org}</div>`  : ''}
+          ${cert.org ? `<div style="font-size:${fontSize - 1}px;color:#555;">${cert.org}</div>` : ''}
           ${cert.date ? `<div style="font-size:${fontSize - 2}px;color:#7A776E;">${cert.date}</div>` : ''}
         </div>`
       })
@@ -146,7 +146,7 @@ initResumeEditor({
       data.awards.forEach(award => {
         if (!award.name && !award.issuer) return
         mainHTML += `<div style="background:#F7F5F0;padding:8px 10px;border-left:3px solid ${accentLight};">
-          ${award.year   ? `<div style="font-size:${fontSize - 3}px;color:#7A776E;">${award.year}</div>`   : ''}
+          ${award.year ? `<div style="font-size:${fontSize - 3}px;color:#7A776E;">${award.year}</div>` : ''}
           <div style="font-weight:600;font-size:${fontSize - 1}px;">${award.name || ''}</div>
           ${award.issuer ? `<div style="font-size:${fontSize - 2}px;color:#555;">${award.issuer}</div>` : ''}
         </div>`
