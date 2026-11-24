@@ -17,6 +17,7 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     if (!resume) return
     resume.style.width = s.w + 'px'
     resume.style.height = s.h + 'px'
+    resume.style.overflow = 'hidden'; // <-- ADD THIS
     localStorage.setItem(PAPER_KEY, size)
     if (typeof scaleResumePreview === 'function') setTimeout(scaleResumePreview, 50);
   }
@@ -218,7 +219,6 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
 
   // --- SMART QUICK SHARE (Mobile & Desktop) ---
   window.shareResume = async function (e) {
-    // 1. Trigger the browser's user gesture immediately
     if (e && e.preventDefault) e.preventDefault();
 
     const sizeKey = localStorage.getItem(PAPER_KEY) || 'a4'
@@ -234,7 +234,6 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     }
 
     try {
-      // 2. Fetch PDF from backend
       const res = await fetch(`${SERVER}/generate-pdf`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -250,20 +249,23 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
 
       const arrayBuffer = await res.arrayBuffer();
       const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
-      const file = new File([blob], 'My_Resume.pdf', { type: 'application/pdf' });
 
-      // 3. Check if the browser supports native file sharing
+      // --- FIX: Force the file to be recognized as a valid PDF ---
+      const file = new File([blob], 'My_Resume.pdf', {
+        type: 'application/pdf',
+        lastModified: Date.now()
+      });
+
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        // Trigger Native Share
         await navigator.share({
           files: [file],
           title: 'My Resume',
           text: 'Here is my resume generated from ProFile.'
         })
       } else {
-        // 4. Fallback for Desktop (Laptop/PC)
-        alert('Direct file sharing is not supported on this desktop browser. Your PDF will download instead.')
-
-        // Auto-download instead of failing
+        // Desktop fallback
+        alert('Direct file sharing is not supported on this browser. Your PDF will download instead.')
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
@@ -273,7 +275,6 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
       }
     } catch (err) {
       console.error('Share error:', err)
-      // If the user just clicked "Cancel" on the share menu, don't show an error
       if (err.name !== 'AbortError') {
         alert('Could not share the resume. Please try downloading it instead.')
       }

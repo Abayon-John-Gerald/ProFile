@@ -774,7 +774,7 @@
         </div>
         <div class="customize-group">
           <label>Size</label>
-          <input type="range" id="fontSize" min="9" max="16" value="13" step="1" oninput="applyCustomizations()">
+          <input type="range" id="fontSize" min="9" max="15" value="12" step="1" oninput="applyCustomizations()">
           <span class="size-val" id="fontSizeVal">13px</span>
           <div style="font-size:10px;color:#B0ADA4;font-family:'DM Sans',sans-serif;width:100%;">Font size applies to
             final resume</div>
@@ -1106,8 +1106,24 @@
     function applyCustomizations() {
       const font = document.getElementById('fontFamily').value
       const size = document.getElementById('fontSize').value
+      const sizeNum = parseInt(size);
+
       document.getElementById('fontSizeVal').textContent = size + 'px'
 
+      // 1. Dynamically load the font if it's not a system font
+      const fontName = font.replace(/'/g, '').split(',')[0].trim();
+      if (fontName && fontName !== 'Times New Roman' && fontName !== 'Georgia') {
+        const linkId = 'font-link-' + fontName.replace(/ /g, '-');
+        if (!document.getElementById(linkId)) {
+          const link = document.createElement('link');
+          link.id = linkId;
+          link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/ /g, '+')}:wght@300;400;500;700&display=swap`;
+          link.rel = 'stylesheet';
+          document.head.appendChild(link);
+        }
+      }
+
+      // 2. Apply to the preview
       let styleTag = document.getElementById('preview-custom-style')
       if (!styleTag) {
         styleTag = document.createElement('style')
@@ -1115,17 +1131,23 @@
         document.head.appendChild(styleTag)
       }
 
-      // Apply font and base size to the main text containers
       styleTag.textContent = `
+        /* Force font family everywhere */
         #previewResume, #previewResume * {
           font-family: ${font} !important;
         }
-        /* Target the body text and paragraphs, but ignore headers if you want to keep them big */
-        #previewResume p, #previewResume .text, #previewResume div:not([style*="font-size"]) {
-          font-size: ${size}px !important;
+        /* Force base size everywhere, but scale down specific headers slightly */
+        #previewResume .text-content { font-size: ${sizeNum}px !important; }
+        #previewResume .prev-name, #previewResume [id$="-name"] { font-size: ${sizeNum * 2}px !important; }
+        #previewResume .prev-jobtitle, #previewResume [id$="-job"] { font-size: ${sizeNum + 2}px !important; }
+        
+        /* Keep the zoom levels intact for the layout */
+        #prev-t2-summary-wrap, #prev-t2-contact-wrap, #prev-t2-edu-wrap, #prev-t2-lang-wrap, #prev-t2-custom-left, #prev-t2-skills-wrap, #prev-t2-work-wrap, #prev-t2-cert-wrap, #prev-t2-award-wrap, #prev-t2-custom-right,
+        #prev-t1-edu-wrap, #prev-skills-section, #prev-t1-lang-wrap, #prev-contact, #prev-t1-custom, #prev-t1-summary-wrap, #prev-work-wrap, #prev-cert-wrap, #prev-award-wrap, #prev-t1-main-custom,
+        #prev-t4-edu-wrap, #prev-t4-skills-wrap, #prev-t4-lang-wrap, #prev-t4-cert-sidebar-wrap, #prev-t4-contact, #prev-t4-custom-sidebar, #prev-t4-summary-wrap, #prev-t4-work-wrap, #prev-t4-award-wrap, #prev-t4-custom-main {
+          zoom: 1.4;
         }
-        /* Keep the specific zoom levels for the layout */
-        #prev-t1, #prev-t2, #prev-t3, #prev-t4 { zoom: 1; }
+        #prev-t3-summary, #prev-t3-work, #prev-t3-edu, #prev-t3-custom, #prev-t3-contact { zoom: 1.0; line-height: 1.4 !important; }
       `
 
       saveDraft()
