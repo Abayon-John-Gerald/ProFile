@@ -5,93 +5,139 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ProFile - Resume Builder</title>
-  <link rel="stylesheet" href="css/home.css">
+  <link rel="stylesheet" href="home.css">
 </head>
 
 <body>
-  <script src="js/auth-guard.js"></script>
+  <script src="auth-guard.js"></script>
 
   <!-- ── Welcome Modal ── -->
-  <div id="welcomeOverlay" class="welcome-overlay">
-    <div class="welcome-card">
+  <div id="welcomeOverlay"
+    style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:9999; align-items:center; justify-content:center; padding:24px;">
+    <div
+      style="background:white; border-radius:20px; padding:40px; width:100%; max-width:460px; box-shadow:0 20px 60px rgba(0,0,0,0.15); animation:popIn 0.4s cubic-bezier(.22,.68,0,1.2) both; font-family:'DM Sans',sans-serif;">
+
       <!-- Step 1: Pick role -->
       <div id="step1">
-        <p class="modal-kicker">Welcome to ProFile</p>
-        <h2 class="modal-title">First, tell us about yourself</h2>
+        <p
+          style="font-size:12px; font-weight:500; color:#8FB89A; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:10px;">
+          Welcome to ProFile</p>
+        <h2 style="font-family:'DM Serif Display',serif; font-size:26px; color:#2B3A2E; margin-bottom:8px;">First, tell
+          us about yourself</h2>
 
-        <div class="role-options">
-          <button onclick="selectRole('student')" id="btn-student" class="role-btn">
-            <span class="role-emoji">🎓</span>
+        <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:28px;">
+          <button onclick="selectRole('student')" id="btn-student"
+            style="display:flex; align-items:center; gap:14px; padding:16px 18px; border:2px solid #D4CFC4; border-radius:12px; background:#F7F5F0; cursor:pointer; text-align:left; font-family:'DM Sans',sans-serif; width:100%; transition:border-color 0.15s;">
+            <span style="font-size:24px;">🎓</span>
             <div>
-              <div class="role-name">Student</div>
-              <div class="role-desc">Building my first resume for internships or entry-level jobs</div>
+              <div style="font-size:14px; font-weight:500; color:#1A1A18; margin-bottom:2px;">Student</div>
+              <div style="font-size:12px; color:#7A776E;">Building my first resume for internships or entry-level jobs
+              </div>
             </div>
           </button>
-          <button onclick="selectRole('job_seeker')" id="btn-jobseeker" class="role-btn">
-            <span class="role-emoji">💼</span>
+          <button onclick="selectRole('job_seeker')" id="btn-jobseeker"
+            style="display:flex; align-items:center; gap:14px; padding:16px 18px; border:2px solid #D4CFC4; border-radius:12px; background:#F7F5F0; cursor:pointer; text-align:left; font-family:'DM Sans',sans-serif; width:100%; transition:border-color 0.15s;">
+            <span style="font-size:24px;">💼</span>
             <div>
-              <div class="role-name">Job Seeker</div>
-              <div class="role-desc">Looking for new opportunities or switching careers</div>
+              <div style="font-size:14px; font-weight:500; color:#1A1A18; margin-bottom:2px;">Job Seeker</div>
+              <div style="font-size:12px; color:#7A776E;">Looking for new opportunities or switching careers</div>
             </div>
           </button>
         </div>
 
-        <button id="continueBtn" onclick="goToStep2()" class="btn-continue" disabled>Continue →</button>
-        <button onclick="closeWelcome()" class="btn-skip">Skip for now</button>
+        <button id="continueBtn" onclick="goToStep2()" disabled
+          style="width:100%; height:44px; background:linear-gradient(135deg,#2B3A2E,#3d5241); color:#F0EDE5; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:not-allowed; opacity:0.4; transition:opacity 0.15s;">Continue
+          →</button>
+        <button onclick="closeWelcome()"
+          style="display:block; width:100%; margin-top:12px; background:none; border:none; font-family:'DM Sans',sans-serif; font-size:12px; color:#7A776E; cursor:pointer; padding:4px;">Skip
+          for now</button>
       </div>
 
       <!-- Step 2: Tutorial -->
       <div id="step2" style="display:none;">
         <div id="tut-1" class="tut-step">
-          <div class="tut-emoji">📝</div>
-          <h3 class="tut-title">Build your resume</h3>
-          <p class="tut-desc">Use the Resume Builder to fill in your personal info, education, skills, and experience
-            step by step.</p>
+          <div style="font-size:48px; margin-bottom:16px;">📝</div>
+          <h3 style="font-family:'DM Serif Display',serif; font-size:22px; color:#2B3A2E; margin-bottom:10px;">Build
+            your resume</h3>
+          <p style="font-size:13px; color:#7A776E; line-height:1.6;">Use the Resume Builder to fill in your personal
+            info, education, skills, and experience step by step.</p>
         </div>
         <div id="tut-2" class="tut-step" style="display:none;">
-          <div class="tut-emoji">🎨</div>
-          <h3 class="tut-title">Pick a template</h3>
-          <p class="tut-desc">Choose from professionally designed templates. Each one is clean, modern, and
-            ATS-friendly.</p>
+          <div style="font-size:48px; margin-bottom:16px;">🎨</div>
+          <h3 style="font-family:'DM Serif Display',serif; font-size:22px; color:#2B3A2E; margin-bottom:10px;">Pick a
+            template</h3>
+          <p style="font-size:13px; color:#7A776E; line-height:1.6;">Choose from professionally designed templates. Each
+            one is clean, modern, and ATS-friendly.</p>
         </div>
         <div id="tut-3" class="tut-step" style="display:none;">
-          <div class="tut-emoji">👁️</div>
-          <h3 class="tut-title">Preview in real time</h3>
-          <p class="tut-desc">See exactly how your resume looks as you type.</p>
+          <div style="font-size:48px; margin-bottom:16px;">👁️</div>
+          <h3 style="font-family:'DM Serif Display',serif; font-size:22px; color:#2B3A2E; margin-bottom:10px;">Preview
+            in real time</h3>
+          <p style="font-size:13px; color:#7A776E; line-height:1.6;">See exactly how your resume looks as you type.</p>
         </div>
         <div id="tut-4" class="tut-step" style="display:none;">
-          <div class="tut-emoji">📄</div>
-          <h3 class="tut-title">Export as PDF</h3>
-          <p class="tut-desc">When you're ready, download your resume as a PDF!</p>
+          <div style="font-size:48px; margin-bottom:16px;">📄</div>
+          <h3 style="font-family:'DM Serif Display',serif; font-size:22px; color:#2B3A2E; margin-bottom:10px;">Export as
+            PDF</h3>
+          <p style="font-size:13px; color:#7A776E; line-height:1.6;">When you're ready, download your resume as a PDF!
+          </p>
         </div>
 
         <!-- Dots -->
-        <div class="tut-dots">
-          <div id="dot-1" class="tut-dot active"></div>
-          <div id="dot-2" class="tut-dot"></div>
-          <div id="dot-3" class="tut-dot"></div>
-          <div id="dot-4" class="tut-dot"></div>
+        <div style="display:flex; justify-content:center; gap:6px; margin:24px 0 20px;">
+          <div id="dot-1"
+            style="width:7px;height:7px;border-radius:50%;background:#4A6350;transform:scale(1.3);transition:all 0.2s;">
+          </div>
+          <div id="dot-2" style="width:7px;height:7px;border-radius:50%;background:#D4CFC4;transition:all 0.2s;"></div>
+          <div id="dot-3" style="width:7px;height:7px;border-radius:50%;background:#D4CFC4;transition:all 0.2s;"></div>
+          <div id="dot-4" style="width:7px;height:7px;border-radius:50%;background:#D4CFC4;transition:all 0.2s;"></div>
         </div>
 
-        <div class="tut-actions">
-          <button id="backBtn" onclick="prevTut()" class="btn-back" style="display:none;">← Back</button>
-          <button id="tutNextBtn" onclick="nextTut()" class="btn-next">Next →</button>
+        <div style="display:flex; gap:10px;">
+          <button id="backBtn" onclick="prevTut()"
+            style="display:none; height:44px; padding:0 18px; background:none; border:1.5px solid #D4CFC4; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; color:#7A776E; cursor:pointer;">←
+            Back</button>
+          <button id="tutNextBtn" onclick="nextTut()"
+            style="flex:1; height:44px; background:linear-gradient(135deg,#2B3A2E,#3d5241); color:#F0EDE5; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer;">Next
+            →</button>
         </div>
-        <button onclick="closeWelcome()" class="btn-skip">Skip tutorial</button>
+        <button onclick="closeWelcome()"
+          style="display:block; width:100%; margin-top:12px; background:none; border:none; font-family:'DM Sans',sans-serif; font-size:12px; color:#7A776E; cursor:pointer; padding:4px;">Skip
+          tutorial</button>
       </div>
+
     </div>
   </div>
 
+  <style>
+    @keyframes popIn {
+      from {
+        opacity: 0;
+        transform: scale(0.92) translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .tut-step {
+      text-align: center;
+      padding: 8px 0;
+    }
+  </style>
+
   <header class="site-header">
-    <a class="logo" href="index.html">Pro<span>File</span></a>
+    <a class="logo" href="/index.html">Pro<span>File</span></a>
     <nav class="site-nav">
       <a class="nav-link" href="#features">Features</a>
       <a class="nav-link" href="#templates">Templates</a>
       <a class="nav-link" href="#how-it-works">How It Works</a>
     </nav>
     <div class="header-actions">
-      <a class="btn-ghost" href="pages/form.html?template=1">Start Building</a>
-      <a class="btn-ghost" href="pages/my-resume.html">Saved Resumes</a>
+      <a class="btn-ghost" href="form.html?template=1">Start Building</a>
+      <a class="btn-ghost" href="my-resume.html">Saved Resumes</a>
       <button onclick="logout()" class="btn-reset">Sign Out</button>
     </div>
   </header>
@@ -110,7 +156,7 @@
           <h1>Build a resume that looks sharp and scans clean.</h1>
           <p>Pick a layout, fill in your details, and get a clean resume — no formatting headaches.</p>
           <div class="hero-actions">
-            <a class="btn-primary" href="pages/form.html?template=1">Create Resume</a>
+            <a class="btn-primary" href="form.html?template=1">Create Resume</a>
             <a class="btn-secondary" href="#templates">Browse Templates</a>
           </div>
           <div class="hero-stats">
@@ -205,7 +251,7 @@
       </div>
 
       <div class="template-grid" id="templateGrid">
-        <a class="template-card" href="pages/form.html?template=1" data-name="classic sidebar">
+        <a class="template-card" href="form.html?template=1" data-name="classic sidebar">
           <div class="template-preview preview-t1">
             <div class="p-sidebar" style="background:#2C2C2C;"></div>
             <div style="position:absolute;left:0;top:0;width:24%;height:28%;background:#3A3A3A;"></div>
@@ -224,7 +270,7 @@
           </div>
         </a>
 
-        <a class="template-card" href="pages/form.html?template=2" data-name="bold header">
+        <a class="template-card" href="form.html?template=2" data-name="bold header">
           <div class="template-preview preview-t2">
             <div
               style="position:absolute;left:0;top:0;width:100%;height:22%;background:#4A5568;clip-path:polygon(0 0,100% 0,100% 75%,0 100%);">
@@ -241,7 +287,7 @@
           </div>
         </a>
 
-        <a class="template-card" href="pages/form.html?template=3" data-name="minimal">
+        <a class="template-card" href="form.html?template=3" data-name="minimal">
           <div class="template-preview preview-t3">
             <div class="p-name"></div>
             <div class="p-sub"></div>
@@ -256,7 +302,7 @@
           </div>
         </a>
 
-        <a class="template-card" href="pages/form.html?template=4" data-name="two column">
+        <a class="template-card" href="form.html?template=4" data-name="two column">
           <div class="template-preview preview-t4">
             <div class="p-col-l"></div>
             <div class="p-name"></div>
@@ -306,7 +352,7 @@
   <footer class="site-footer">ProFile - A Resume builder for focused, ATS-friendly applications.</footer>
 
   <script>
-    // Template search
+    //  Template search 
     function filterTemplates() {
       const q = document.getElementById('searchInput').value.toLowerCase()
       document.querySelectorAll('.template-card').forEach(card => {
@@ -327,14 +373,15 @@
         const user = await res.json()
         if (!user.onboarded) {
           document.getElementById('welcomeOverlay').style.display = 'flex'
+          localStorage.setItem('profile_onboarded_' + user.id, '1')
         }
       } catch (e) {
         const userStr = localStorage.getItem('profile_user')
         if (userStr) {
           const user = JSON.parse(userStr)
-          const key = 'profile_onboarded_' + user.id
-          if (!localStorage.getItem(key)) {
+          if (!localStorage.getItem('profile_onboarded_' + user.id || user.username)) {
             document.getElementById('welcomeOverlay').style.display = 'flex'
+            localStorage.setItem(key, '1')
           }
         }
       }
@@ -342,21 +389,26 @@
 
     function selectRole(role) {
       selectedRole = role
-      document.getElementById('btn-student').classList.toggle('selected', role === 'student')
-      document.getElementById('btn-jobseeker').classList.toggle('selected', role === 'job_seeker')
+      document.getElementById('btn-student').style.borderColor = role === 'student' ? '#4A6350' : '#D4CFC4'
+      document.getElementById('btn-jobseeker').style.borderColor = role === 'job_seeker' ? '#4A6350' : '#D4CFC4'
+      document.getElementById('btn-student').style.background = role === 'student' ? '#EBF3EE' : '#F7F5F0'
+      document.getElementById('btn-jobseeker').style.background = role === 'job_seeker' ? '#EBF3EE' : '#F7F5F0'
       const btn = document.getElementById('continueBtn')
       btn.disabled = false
-      btn.classList.add('active')
+      btn.style.opacity = '1'
+      btn.style.cursor = 'pointer'
     }
 
     function goToStep2() {
       if (!selectedRole) return
+      // Save role locally
       const userStr = localStorage.getItem('profile_user')
       if (userStr) {
         const user = JSON.parse(userStr)
         user.userType = selectedRole
         localStorage.setItem('profile_user', JSON.stringify(user))
       }
+      // saving to backend
       fetch('/api/onboard', {
         method: 'POST',
         headers: {
@@ -373,10 +425,12 @@
     function nextTut() {
       if (currentTut < totalTut) {
         document.getElementById('tut-' + currentTut).style.display = 'none'
-        document.getElementById('dot-' + currentTut).classList.remove('active')
+        document.getElementById('dot-' + currentTut).style.background = '#D4CFC4'
+        document.getElementById('dot-' + currentTut).style.transform = 'scale(1)'
         currentTut++
         document.getElementById('tut-' + currentTut).style.display = 'block'
-        document.getElementById('dot-' + currentTut).classList.add('active')
+        document.getElementById('dot-' + currentTut).style.background = '#4A6350'
+        document.getElementById('dot-' + currentTut).style.transform = 'scale(1.3)'
         document.getElementById('backBtn').style.display = 'block'
         if (currentTut === totalTut) {
           document.getElementById('tutNextBtn').textContent = 'Get started →'
@@ -389,10 +443,12 @@
     function prevTut() {
       if (currentTut > 1) {
         document.getElementById('tut-' + currentTut).style.display = 'none'
-        document.getElementById('dot-' + currentTut).classList.remove('active')
+        document.getElementById('dot-' + currentTut).style.background = '#D4CFC4'
+        document.getElementById('dot-' + currentTut).style.transform = 'scale(1)'
         currentTut--
         document.getElementById('tut-' + currentTut).style.display = 'block'
-        document.getElementById('dot-' + currentTut).classList.add('active')
+        document.getElementById('dot-' + currentTut).style.background = '#4A6350'
+        document.getElementById('dot-' + currentTut).style.transform = 'scale(1.3)'
         document.getElementById('tutNextBtn').textContent = 'Next →'
         if (currentTut === 1) document.getElementById('backBtn').style.display = 'none'
       }
