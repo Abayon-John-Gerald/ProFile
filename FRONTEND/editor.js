@@ -172,31 +172,79 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     window.location.href = 'form.html?template=' + templateNum
   }
 
-  window.generatePDF = async function () {
+  // --- PDF helpers (shared by download + share) ---
+  let cachedPdf = { key: null, file: null }
+
+  function getPdfKey() {
     const sizeKey = localStorage.getItem(PAPER_KEY) || 'a4'
-    const size = PAPER_SIZES[sizeKey]
+    return sizeKey + '|' + document.getElementById('resume').outerHTML
+  }
+
+  function isPdfCached() {
+    return !!cachedPdf.file && cachedPdf.key === getPdfKey()
+  }
+
+  function fetchWithTimeout(url, options, ms) {
+    const ctrl = new AbortController()
+    const t = setTimeout(() => ctrl.abort(), ms)
+    return fetch(url, { ...options, signal: ctrl.signal }).finally(() => clearTimeout(t))
+  }
+
+  async function requestPdf() {
+    if (isPdfCached()) return cachedPdf.file
+
+    const sizeKey = localStorage.getItem(PAPER_KEY) || 'a4'
+    const size = PAPER_SIZES[sizeKey] || PAPER_SIZES.a4
     const token = localStorage.getItem('profile_token')
-    try {
-      const res = await fetch(`${SERVER}/generate-pdf`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({
-          html: document.getElementById('resume').outerHTML,
-          width: size.w,
-          height: size.h,
-          template: templateNum
-        })
+    const key = getPdfKey()
+
+    const options = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({
+        html: document.getElementById('resume').outerHTML,
+        width: size.w,
+        height: size.h,
+        template: templateNum
       })
-      if (!res.ok) throw new Error('Server error: ' + res.status)
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'resume.pdf'
-      a.click()
-      URL.revokeObjectURL(url)
+    }
+
+    // The Render server may be asleep, so try once more if the first try fails
+    let res
+    try {
+      res = await fetchWithTimeout(`${SERVER}/generate-pdf`, options, 45000)
+    } catch (err) {
+      res = await fetchWithTimeout(`${SERVER}/generate-pdf`, options, 60000)
+    }
+    if (!res.ok) throw new Error('Server error: ' + res.status)
+
+    const blob = new Blob([await res.arrayBuffer()], { type: 'application/pdf' })
+    const file = new File([blob], 'My_Resume.pdf', { type: 'application/pdf', lastModified: Date.now() })
+    cachedPdf = { key, file }
+    return file
+  }
+
+  function downloadFile(file) {
+    const url = URL.createObjectURL(file)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = file.name || 'My_Resume.pdf'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
+
+  // Wake up the Render server as soon as the page opens
+  fetch(SERVER + '/', { mode: 'no-cors' }).catch(() => { })
+
+  window.generatePDF = async function () {
+    try {
+      const file = await requestPdf()
+      downloadFile(file)
     } catch (e) {
-      alert('Could not generate PDF. Make sure the server is running.')
+      console.error('PDF error:', e)
+      alert('Could not generate PDF. The server may be waking up, please try again in a few seconds.')
     }
   }
 
@@ -217,69 +265,59 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     setTimeout(() => { window.print(); setTimeout(() => { const el = document.getElementById('dynamic-print-style'); if (el) el.remove(); }, 1000); }, 150);
   }
 
+  function isMobileDevice() {
+    if (navigator.userAgentData && typeof navigator.userAgentData.mobile === 'boolean' && navigator.userAgentData.mobile) return true
+    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) return true
+    // iPadOS reports itself as a Mac
+    return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1
+  }
+
   // --- SMART QUICK SHARE (Mobile & Desktop) ---
   window.shareResume = async function (e) {
-    if (e && e.preventDefault) e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault()
 
-    const sizeKey = localStorage.getItem(PAPER_KEY) || 'a4'
-    const size = PAPER_SIZES[sizeKey]
-    const token = localStorage.getItem('profile_token')
+    const btn = e && e.currentTarget ? e.currentTarget : null
+    if (btn && btn.dataset.originalHtml === undefined) btn.dataset.originalHtml = btn.innerHTML
+    const originalHTML = btn ? btn.dataset.originalHtml : ''
+    const setBtn = (html, disabled) => { if (btn) { btn.innerHTML = html; btn.disabled = disabled } }
 
-    let btn = null; let originalHTML = '';
-    if (e && e.currentTarget) {
-      btn = e.currentTarget;
-      originalHTML = btn.innerHTML;
-      btn.innerHTML = 'Generating...';
-      btn.disabled = true;
-    }
+    let keepLabel = false
 
     try {
-      const res = await fetch(`${SERVER}/generate-pdf`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({
-          html: document.getElementById('resume').outerHTML,
-          width: size.w,
-          height: size.h,
-          template: templateNum
-        })
-      })
+      if (!isPdfCached()) setBtn('Generating...', true)
 
-      if (!res.ok) throw new Error('Could not generate PDF')
+      const file = await requestPdf()
 
-      const arrayBuffer = await res.arrayBuffer();
-      const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+      // Desktop browsers have a weak share sheet (no copy, few apps), so download instead
+      if (!isMobileDevice()) {
+        downloadFile(file)
+        return
+      }
 
-      // --- FIX: Force the file to be recognized as a valid PDF ---
-      const file = new File([blob], 'My_Resume.pdf', {
-        type: 'application/pdf',
-        lastModified: Date.now()
-      });
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        // Trigger Native Share
-        await navigator.share({
-          files: [file],
-          title: 'My Resume',
-          text: 'Here is my resume generated from ProFile.'
-        })
-      } else {
-        // Desktop fallback
+      if (!(navigator.canShare && navigator.canShare({ files: [file] }))) {
         alert('Direct file sharing is not supported on this browser. Your PDF will download instead.')
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = 'My_Resume.pdf'
-        a.click()
-        URL.revokeObjectURL(url)
+        downloadFile(file)
+        return
+      }
+
+      try {
+        // Only send the file. Extra text/title makes some apps fail.
+        await navigator.share({ files: [file] })
+      } catch (err) {
+        if (err.name === 'AbortError') return
+        if (err.name === 'NotAllowedError') {
+          // The browser needs a fresh tap. The PDF is cached, so the next tap shares instantly.
+          keepLabel = true
+          setBtn('PDF ready - tap to share', false)
+          return
+        }
+        throw err
       }
     } catch (err) {
       console.error('Share error:', err)
-      if (err.name !== 'AbortError') {
-        alert('Could not share the resume. Please try downloading it instead.')
-      }
+      alert('Could not share the resume. The server may be waking up, so please try again in a few seconds, or download it instead.')
     } finally {
-      if (btn) { btn.innerHTML = originalHTML; btn.disabled = false; }
+      if (btn && !keepLabel) setBtn(originalHTML, false)
     }
   }
 
