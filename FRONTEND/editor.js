@@ -265,13 +265,6 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     setTimeout(() => { window.print(); setTimeout(() => { const el = document.getElementById('dynamic-print-style'); if (el) el.remove(); }, 1000); }, 150);
   }
 
-  function isMobileDevice() {
-    if (navigator.userAgentData && typeof navigator.userAgentData.mobile === 'boolean' && navigator.userAgentData.mobile) return true
-    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) return true
-    // iPadOS reports itself as a Mac
-    return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1
-  }
-
   // --- SMART QUICK SHARE (Mobile & Desktop) ---
   window.shareResume = async function (e) {
     if (e && e.preventDefault) e.preventDefault()
@@ -287,12 +280,6 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
       if (!isPdfCached()) setBtn('Generating...', true)
 
       const file = await requestPdf()
-
-      // Desktop browsers have a weak share sheet (no copy, few apps), so download instead
-      if (!isMobileDevice()) {
-        downloadFile(file)
-        return
-      }
 
       if (!(navigator.canShare && navigator.canShare({ files: [file] }))) {
         alert('Direct file sharing is not supported on this browser. Your PDF will download instead.')
