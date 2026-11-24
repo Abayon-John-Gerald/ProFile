@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProFile — Template 10</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style10.css">
+
+<body>
+    <script src="auth-guard.js"></script>
+    <header class="header">
+        <div class="header-logo">Pro<span>File</span></div>
+        <div class="header-right">
+            <a class="btn-ghost" href="my-resume.html">Saved Resumes</a>
+            <button class="btn-download" onclick="printResume()">Print</button>
+            <button class="btn-download" onclick="generatePDF()">↓ Download PDF</button>
+            <button class="btn-download" onclick="shareResume(event)">Share</button>
+            <button onclick="logout()" class="btn-reset">Sign Out</button>
+        </div>
+    </header>
+    <div class="canvas-area">
+        <div id="resume"></div>
+    </div>
+    <script src="editor.js"></script>
+    <script src="template7.js"></script>
+</body>
+
+</html>

@@ -51,12 +51,12 @@ async function seedAdmin() {
   try {
     const [rows] = await db.execute('SELECT COUNT(*) as count FROM users')
     if (rows[0].count === 0) {
-      const hashed = await bcrypt.hash('admin123', 10)
+      const hashed = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'admin123', 10)
       await db.execute(
         'INSERT INTO users (full_name, username, password, role) VALUES (?, ?, ?, ?)',
         ['Administrator', 'admin', hashed, 'admin']
       )
-      console.log('✓ Default admin created: admin / admin123 (change this)')
+      console.log('✓ Default admin created (check ADMIN_PASSWORD env)')
     }
   } catch (e) {
     console.error('Seed admin failed:', e.message)
@@ -198,8 +198,9 @@ app.post(['/api/generate-summary', '/api/ai/summary', '/api/ai/generate-summary'
   const jobTitle = clean(req.body.jobTitle, 80)
   const name = clean(req.body.name, 80)
   const skills = clean(req.body.skills, 200)
-  const experience = clean(req.body.experience, 60)
+  const experience = clean(req.body.experience, 300) // Increased length limit for experience
   const tone = clean(req.body.tone, 40) || 'Professional'
+  const userPrompt = clean(req.body.userPrompt, 300) // User's custom instruction
 
   if (!jobTitle) return res.status(400).json({ error: 'Job title is required' })
 
@@ -226,7 +227,8 @@ app.post(['/api/generate-summary', '/api/ai/summary', '/api/ai/generate-summary'
 Target role: ${jobTitle}
 Key skills: ${skills || 'Not provided'}
 Experience: ${experience || 'Not provided'}
-Tone: ${tone}`
+Tone: ${tone}
+${userPrompt ? `Additional instruction from the user: "${userPrompt}"` : ''}`
           }
         ]
       }),
@@ -370,7 +372,7 @@ app.get('/admin/audit', requireAdmin, async (req, res) => {
 
 // ── PDF GENERATION ──
 const cssMap = {}
-  ;[1, 2, 3, 4].forEach(n => {
+  ;[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].forEach(n => {
     const file = path.join(FRONTEND, n === 1 ? 'style.css' : `style${n}.css`)
     try { cssMap[n] = fs.readFileSync(file, 'utf8') }
     catch { console.warn(`Could not load ${path.basename(file)}`); cssMap[n] = '' }
@@ -412,7 +414,7 @@ app.post('/generate-pdf', requireAuth, pdfLimiter, async (req, res) => {
 
     const pdfW = Math.min(parseInt(req.body.width) || 794, 1200)
     const pdfH = Math.min(parseInt(req.body.height) || 1123, 1700)
-    const templateNum = [1, 2, 3, 4].includes(+req.body.template) ? +req.body.template : 1
+    const templateNum = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].includes(+req.body.template) ? +req.body.template : 1
 
     const fullHTML = `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <link rel="preconnect" href="https://fonts.googleapis.com">
