@@ -18,12 +18,14 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     resume.style.width = s.w + 'px'
     resume.style.height = s.h + 'px'
     localStorage.setItem(PAPER_KEY, size)
+    if (typeof scaleResumePreview === 'function') {
+      setTimeout(scaleResumePreview, 50);
+    }
   }
   window.applyPaperSize = applyPaperSize
 
   const resume = document.getElementById('resume')
 
-  // BUILD TEXT ELEMENT
   function buildTextElement(opts = {}) {
     const el = document.createElement('div')
     el.className = 'text'
@@ -85,9 +87,8 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     return el
   }
 
-  // LOAD FROM FORM DATA 
   function loadFormData() {
-    const raw = localStorage.getItem('profile_form_data')
+    const raw = localStorage.getItem('profile_form_data') || localStorage.getItem('profile_form_draft_t' + templateNum)
     if (!raw) return false
     try {
       const data = JSON.parse(raw)
@@ -95,12 +96,13 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
       applyPaperSize(data.paperSize || 'a4')
 
       document.querySelectorAll('#resume .text').forEach(el => el.remove())
-      const resume = document.getElementById('resume')
-      Array.from(resume.children).forEach(child => {
+      const resumeEl = document.getElementById('resume')
+      Array.from(resumeEl.children).forEach(child => {
         if (!child.classList.contains('text')) {
           child.querySelectorAll('.text').forEach(el => el.remove())
         }
       })
+
       renderFromFormData({ data, buildTextElement, buildHtmlElement, buildImageElement })
       return true
     } catch (e) {
@@ -109,9 +111,8 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     }
   }
 
-  // LOAD FROM DRAFT 
   function loadFromDraft() {
-    const raw = localStorage.getItem('profile_form_draft')
+    const raw = localStorage.getItem('profile_form_draft_t' + templateNum)
     if (!raw) return false
     try {
       const data = JSON.parse(raw)
@@ -124,10 +125,9 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     }
   }
 
-  // RESET 
   window.resetSession = function () {
     if (!confirm('Clear this resume? You\'ll go back to the form.')) return
-    localStorage.removeItem('profile_form_draft')
+    localStorage.removeItem('profile_form_draft_t' + templateNum)
     localStorage.removeItem('profile_canvas_state')
     localStorage.removeItem('profile_canvas_state_t2')
     localStorage.removeItem('profile_canvas_state_t3')
@@ -135,7 +135,6 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     window.location.href = 'form.html?template=' + templateNum
   }
 
-  // PDF EXPORT (DOWNLOAD)
   window.generatePDF = async function () {
     const sizeKey = localStorage.getItem(PAPER_KEY) || 'a4'
     const size = PAPER_SIZES[sizeKey]
@@ -164,23 +163,33 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     }
   }
 
-  // --- NEW: DIRECT PRINT ---
+  // --- DIRECT PRINT ---
   window.printResume = function () {
-    // A slight delay ensures any pending DOM updates finish rendering before the print dialog opens
+    const printStyle = document.createElement('style');
+    printStyle.id = 'dynamic-print-style';
+    printStyle.innerHTML = `
+      @media print {
+        @page { size: A4 portrait; margin: 0; }
+        body, html { margin: 0 !important; padding: 0 !important; height: 100vh !important; overflow: hidden !important; background: white !important; }
+        .header, .toolbar, .btn-download, .btn-reset, .btn-ghost, .canvas-area { display: none !important; }
+        #resume { position: absolute !important; top: 0 !important; left: 0 !important; box-shadow: none !important; transform: none !important; margin: 0 !important; page-break-after: avoid !important; page-break-inside: avoid !important; }
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      }
+    `;
+    document.head.appendChild(printStyle);
     setTimeout(() => {
       window.print();
+      setTimeout(() => { const el = document.getElementById('dynamic-print-style'); if (el) el.remove(); }, 500);
     }, 100);
   }
 
-  // --- NEW: QUICK SHARE (Native OS Share) ---
+  // --- SMART QUICK SHARE (Mobile & Desktop) ---
   window.shareResume = async function (e) {
     const sizeKey = localStorage.getItem(PAPER_KEY) || 'a4'
     const size = PAPER_SIZES[sizeKey]
     const token = localStorage.getItem('profile_token')
 
-    // Add a loading state to the button if available
-    let btn = null;
-    let originalHTML = '';
+    let btn = null; let originalHTML = '';
     if (e && e.currentTarget) {
       btn = e.currentTarget;
       originalHTML = btn.innerHTML;
@@ -204,41 +213,67 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
       if (!res.ok) throw new Error('Could not generate PDF')
       const blob = await res.blob()
 
-      // 2. Create a File object
+      // 2. Try to use the Native Share API (Mobile)
       const file = new File([blob], 'My_Resume.pdf', { type: 'application/pdf' })
 
-      // 3. Check for Web Share API support (Mobile devices)
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: 'My Resume',
-          text: 'Here is my resume generated from ProFile.'
-        })
-      } else {
-        // 4. Fallback for Desktop (if native sharing isn't supported)
-        alert('Direct sharing is supported on mobile devices. Your PDF will download instead so you can send it manually.')
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = 'My_Resume.pdf'
-        a.click()
-        URL.revokeObjectURL(url)
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: 'My Resume',
+            text: 'Here is my resume generated from ProFile.'
+          })
+          return; // Success! Exit the function.
+        } catch (shareErr) {
+          // If the user cancelled, we just exit gracefully.
+          if (shareErr.name === 'AbortError') return;
+          // If it fails (e.g., HTTP instead of HTTPS), we fall through to the fallback.
+          console.warn('Native file share failed, falling back to download.', shareErr);
+        }
       }
+
+      // 3. Fallback for Desktop OR if Native File Share fails
+      alert('Direct file sharing is not supported on this device/browser. Your PDF will download instead so you can send it manually.')
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'My_Resume.pdf'
+      a.click()
+      URL.revokeObjectURL(url)
+
     } catch (err) {
       console.error('Share error:', err)
-      // Ignore error if user just cancelled the share menu
-      if (err.name !== 'AbortError') {
-        alert('Could not share the resume. Please try downloading it instead.')
-      }
+      alert('Could not share the resume. Please try downloading it instead.')
     } finally {
-      // Restore button state
-      if (btn) {
-        btn.innerHTML = originalHTML;
-        btn.disabled = false;
-      }
+      if (btn) { btn.innerHTML = originalHTML; btn.disabled = false; }
     }
   }
 
+  // --- RESPONSIVE SCALING ---
+  function scaleResumePreview() {
+    const wrapper = document.querySelector('.canvas-area');
+    const resumeEl = document.getElementById('resume');
+    if (!wrapper || !resumeEl) return;
+
+    const wrapperStyle = window.getComputedStyle(wrapper);
+    const paddingLeft = parseFloat(wrapperStyle.paddingLeft);
+    const paddingRight = parseFloat(wrapperStyle.paddingRight);
+    const availableWidth = wrapper.clientWidth - paddingLeft - paddingRight;
+    const paperWidth = resumeEl.offsetWidth;
+
+    let scale = availableWidth / paperWidth;
+    if (scale > 1) scale = 1;
+
+    resumeEl.style.transform = `scale(${scale})`;
+    resumeEl.style.transformOrigin = 'top center';
+
+    const paperHeight = resumeEl.offsetHeight;
+    wrapper.style.height = (paperHeight * scale) + 'px';
+  }
+
+  window.addEventListener('resize', scaleResumePreview);
   applyPaperSize(localStorage.getItem(PAPER_KEY) || 'a4')
+
   if (!loadFormData()) loadFromDraft()
+  setTimeout(scaleResumePreview, 150);
 }

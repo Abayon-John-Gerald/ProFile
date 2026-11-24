@@ -1055,7 +1055,10 @@
   </div>
 
   <script>
-    const templateNum = new URLSearchParams(window.location.search).get('template') || '1'
+    const urlParams = new URLSearchParams(window.location.search);
+    const rawTemplate = urlParams.get('template');
+
+    const templateNum = ['1', '2', '3', '4'].includes(rawTemplate) ? rawTemplate : '1';
 
     window.currentAccentDark = '#2C2C2C'
     window.currentAccentLight = '#8FB89A'
@@ -2017,6 +2020,8 @@
     // ── Build resume ──
     async function buildResume() {
       const formData = collectFormData()
+
+      // Save to local storage
       localStorage.setItem('profile_form_data', JSON.stringify(formData))
       localStorage.setItem('profile_form_draft_t' + templateNum, JSON.stringify(formData))
       localStorage.setItem('profile_accent_dark', window.currentAccentDark || '#2C2C2C')
@@ -2030,13 +2035,14 @@
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
             body: JSON.stringify({
               title: formData.name ? formData.name + "'s Resume" : 'Untitled Resume',
-              template_num: parseInt(templateNum),
+              template_num: parseInt(templateNum), // Ensure this is an integer
               resume_data: formData
             })
           })
         } catch (e) { console.warn('Could not save to server:', e) }
       }
-      window.location.href = 'template' + templateNum + '.html'
+
+      window.location.href = 'template' + templateNum + '.html';
     }
 
     // ── Scale preview ──
@@ -2184,6 +2190,42 @@
       document.getElementById('aiResultArea').style.display = 'none'
       aiLastResult = ''
     }
+
+    function scaleLivePreview() {
+      const outer = document.getElementById('previewOuter');
+      const inner = document.getElementById('previewResume');
+      if (!outer || !inner) return;
+
+      // Get the width of the preview panel (minus padding)
+      const panelWidth = outer.parentElement.clientWidth;
+
+      // The hardcoded width of the resume canvas is 794px
+      const originalWidth = 794;
+
+      // Calculate scale
+      let scale = panelWidth / originalWidth;
+
+      // Cap it at 1 (don't scale up on large screens)
+      if (scale > 1) scale = 1;
+
+      // Apply the scale
+      inner.style.transform = `scale(${scale})`;
+      inner.style.transformOrigin = 'top left';
+
+      // Adjust the outer container height so it doesn't leave huge white spaces
+      const originalHeight = inner.offsetHeight;
+      outer.style.height = (originalHeight * scale) + 'px';
+      outer.style.width = (originalWidth * scale) + 'px';
+      outer.style.margin = '0 auto';
+    }
+
+    // Run on load
+    window.addEventListener('DOMContentLoaded', scaleLivePreview);
+    // Run when window resizes (e.g., rotating a phone)
+    window.addEventListener('resize', scaleLivePreview);
+
+    // Run after a slight delay to ensure all elements are drawn
+    setTimeout(scaleLivePreview, 200);
   </script>
 </body>
 
