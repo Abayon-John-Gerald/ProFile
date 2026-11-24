@@ -1,10 +1,15 @@
 function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
 
-  // Since the backend serves the frontend, we can just use a relative path
-  const SERVER = '';
+  const SERVER = window.location.hostname === 'localhost'
+    ? 'http://localhost:3000'
+    : 'https://profile-07v0.onrender.com'
 
   const PAPER_KEY = 'profile_paper_size'
-  const PAPER_SIZES = { a4: { w: 794, h: 1123 }, letter: { w: 816, h: 1056 } }
+
+  const PAPER_SIZES = {
+    a4: { w: 794, h: 1123 },
+    letter: { w: 816, h: 1056 }
+  }
 
   function applyPaperSize(size) {
     const s = PAPER_SIZES[size] || PAPER_SIZES.a4
@@ -12,7 +17,7 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     if (!resume) return
     resume.style.width = s.w + 'px'
     resume.style.height = s.h + 'px'
-    resume.style.overflow = 'hidden'
+    resume.style.overflow = 'hidden'; // <-- ADD THIS
     localStorage.setItem(PAPER_KEY, size)
     if (typeof scaleResumePreview === 'function') setTimeout(scaleResumePreview, 50);
   }
@@ -44,6 +49,8 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     if (opts.html) content.innerHTML = opts.html
     else content.innerText = opts.text ?? ''
 
+    // Font FAMILY comes from the global override below so the selected font applies everywhere.
+    // Font SIZE is set per element so headings keep their size relative to body text.
     if (opts.fontSize) content.style.fontSize = opts.fontSize
     if (opts.color) content.style.color = opts.color
     if (opts.fontWeight) content.style.fontWeight = opts.fontWeight
@@ -53,7 +60,9 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     return el
   }
 
-  function buildHtmlElement(opts = {}) { return buildTextElement({ ...opts, html: opts.html }) }
+  function buildHtmlElement(opts = {}) {
+    return buildTextElement({ ...opts, html: opts.html })
+  }
 
   function buildImageElement(opts = {}) {
     const el = document.createElement('div')
@@ -86,6 +95,7 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
       localStorage.removeItem('profile_form_data')
       applyPaperSize(data.paperSize || 'a4')
 
+      // --- FIX: Load the selected font dynamically from Google Fonts ---
       if (data.fontFamily) {
         const fontName = data.fontFamily.replace(/'/g, '').split(',')[0].trim();
         if (fontName && fontName !== 'Times New Roman' && fontName !== 'Georgia') {
@@ -97,6 +107,7 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
         }
       }
 
+      // --- FIX: Override ALL fonts and sizes globally based on user selection ---
       let styleTag = document.getElementById('global-font-override');
       if (!styleTag) {
         styleTag = document.createElement('style');
@@ -105,15 +116,26 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
       }
 
       const selectedFont = data.fontFamily || "'DM Sans', sans-serif";
+
       styleTag.innerHTML = `
-        #resume, #resume * { font-family: ${selectedFont} !important; }
-        #resume .text-content { overflow-wrap: anywhere; word-break: break-word; }
+        /* Force the selected font family on the entire resume (names included) */
+        #resume, #resume * {
+          font-family: ${selectedFont} !important;
+        }
+        /* Long words (emails etc.) wrap instead of running out of their column */
+        #resume .text-content {
+          overflow-wrap: anywhere;
+          word-break: break-word;
+        }
       `;
+      // ------------------------------------------------------------------------
 
       document.querySelectorAll('#resume .text').forEach(el => el.remove())
       const resumeEl = document.getElementById('resume')
       Array.from(resumeEl.children).forEach(child => {
-        if (!child.classList.contains('text')) child.querySelectorAll('.text').forEach(el => el.remove())
+        if (!child.classList.contains('text')) {
+          child.querySelectorAll('.text').forEach(el => el.remove())
+        }
       })
 
       renderFromFormData({ data, buildTextElement, buildHtmlElement, buildImageElement })
@@ -133,21 +155,32 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
       document.querySelectorAll('#resume .text').forEach(el => el.remove())
       renderFromFormData({ data, buildTextElement, buildHtmlElement, buildImageElement })
       return true
-    } catch (e) { return false }
+    } catch (e) {
+      return false
+    }
   }
 
   window.resetSession = function () {
     if (!confirm('Clear this resume? You\'ll go back to the form.')) return
     localStorage.removeItem('profile_form_draft_t' + templateNum)
+    localStorage.removeItem('profile_canvas_state')
     localStorage.removeItem('profile_canvas_state_t2')
     localStorage.removeItem('profile_canvas_state_t3')
     localStorage.removeItem('profile_canvas_state_t4')
     window.location.href = 'form.html?template=' + templateNum
   }
 
+  // --- PDF helpers (shared by download + share) ---
   let cachedPdf = { key: null, file: null }
-  function getPdfKey() { return (localStorage.getItem(PAPER_KEY) || 'a4') + '|' + document.getElementById('resume').outerHTML }
-  function isPdfCached() { return !!cachedPdf.file && cachedPdf.key === getPdfKey() }
+
+  function getPdfKey() {
+    const sizeKey = localStorage.getItem(PAPER_KEY) || 'a4'
+    return sizeKey + '|' + document.getElementById('resume').outerHTML
+  }
+
+  function isPdfCached() {
+    return !!cachedPdf.file && cachedPdf.key === getPdfKey()
+  }
 
   function fetchWithTimeout(url, options, ms) {
     const ctrl = new AbortController()
@@ -157,6 +190,7 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
 
   async function requestPdf() {
     if (isPdfCached()) return cachedPdf.file
+
     const sizeKey = localStorage.getItem(PAPER_KEY) || 'a4'
     const size = PAPER_SIZES[sizeKey] || PAPER_SIZES.a4
     const token = localStorage.getItem('profile_token')
@@ -167,14 +201,19 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({
         html: document.getElementById('resume').outerHTML,
-        width: size.w, height: size.h, template: templateNum
+        width: size.w,
+        height: size.h,
+        template: templateNum
       })
     }
 
+    // The Render server may be asleep, so try once more if the first try fails
     let res
-    try { res = await fetchWithTimeout(`${SERVER}/generate-pdf`, options, 45000) }
-    catch (err) { res = await fetchWithTimeout(`${SERVER}/generate-pdf`, options, 60000) }
-
+    try {
+      res = await fetchWithTimeout(`${SERVER}/generate-pdf`, options, 45000)
+    } catch (err) {
+      res = await fetchWithTimeout(`${SERVER}/generate-pdf`, options, 60000)
+    }
     if (!res.ok) throw new Error('Server error: ' + res.status)
 
     const blob = new Blob([await res.arrayBuffer()], { type: 'application/pdf' })
@@ -194,11 +233,17 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
 
+  // Wake up the Render server as soon as the page opens
   fetch(SERVER + '/', { mode: 'no-cors' }).catch(() => { })
 
   window.generatePDF = async function () {
-    try { downloadFile(await requestPdf()) }
-    catch (e) { console.error('PDF error:', e); alert('Could not generate PDF. The server may be waking up, please try again in a few seconds.') }
+    try {
+      const file = await requestPdf()
+      downloadFile(file)
+    } catch (e) {
+      console.error('PDF error:', e)
+      alert('Could not generate PDF. The server may be waking up, please try again in a few seconds.')
+    }
   }
 
   window.printResume = function () {
@@ -218,16 +263,20 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
     setTimeout(() => { window.print(); setTimeout(() => { const el = document.getElementById('dynamic-print-style'); if (el) el.remove(); }, 1000); }, 150);
   }
 
+  // --- SMART QUICK SHARE (Mobile & Desktop) ---
   window.shareResume = async function (e) {
     if (e && e.preventDefault) e.preventDefault()
+
     const btn = e && e.currentTarget ? e.currentTarget : null
     if (btn && btn.dataset.originalHtml === undefined) btn.dataset.originalHtml = btn.innerHTML
     const originalHTML = btn ? btn.dataset.originalHtml : ''
     const setBtn = (html, disabled) => { if (btn) { btn.innerHTML = html; btn.disabled = disabled } }
+
     let keepLabel = false
 
     try {
       if (!isPdfCached()) setBtn('Generating...', true)
+
       const file = await requestPdf()
 
       if (!(navigator.canShare && navigator.canShare({ files: [file] }))) {
@@ -237,10 +286,15 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
       }
 
       try {
-        await navigator.share({ files: [file], title: 'My Resume', text: 'Here is my resume generated from ProFile.' })
+        await navigator.share({
+          files: [file],
+          title: 'My Resume',
+          text: 'Here is my resume generated from ProFile.'
+        })
       } catch (err) {
         if (err.name === 'AbortError') return
         if (err.name === 'NotAllowedError') {
+          // The browser needs a fresh tap. The PDF is cached, so the next tap shares instantly.
           keepLabel = true
           setBtn('PDF ready - tap to share', false)
           return

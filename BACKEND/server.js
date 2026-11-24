@@ -21,10 +21,11 @@ const app = express()
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'
 
 // Works whether server.js is in the project root or in a BACKEND folder
-const FRONTEND = path.join(__dirname, '..', 'FRONTEND')
+const FRONTEND = fs.existsSync(path.join(__dirname, 'FRONTEND'))
+  ? path.join(__dirname, 'FRONTEND')
+  : path.join(__dirname, '..', 'FRONTEND')
 
 // ── MIDDLEWARE ──
-app.set('trust proxy', 1) // Important for Render/Heroku rate limiting
 app.use(cors())
 app.use(express.json({ limit: '10mb' }))
 app.use((req, res, next) => {
@@ -50,13 +51,12 @@ async function seedAdmin() {
   try {
     const [rows] = await db.execute('SELECT COUNT(*) as count FROM users')
     if (rows[0].count === 0) {
-      const adminPass = process.env.ADMIN_PASSWORD || 'admin123'
-      const hashed = await bcrypt.hash(adminPass, 10)
+      const hashed = await bcrypt.hash('admin123', 10)
       await db.execute(
         'INSERT INTO users (full_name, username, password, role) VALUES (?, ?, ?, ?)',
         ['Administrator', 'admin', hashed, 'admin']
       )
-      console.log('✓ Default admin created: admin / ' + adminPass + ' (change this)')
+      console.log('✓ Default admin created: admin / admin123 (change this)')
     }
   } catch (e) {
     console.error('Seed admin failed:', e.message)
@@ -198,9 +198,8 @@ app.post(['/api/generate-summary', '/api/ai/summary', '/api/ai/generate-summary'
   const jobTitle = clean(req.body.jobTitle, 80)
   const name = clean(req.body.name, 80)
   const skills = clean(req.body.skills, 200)
-  const experience = clean(req.body.experience, 300) // Increased max chars
+  const experience = clean(req.body.experience, 60)
   const tone = clean(req.body.tone, 40) || 'Professional'
-  const instruction = clean(req.body.instruction, 300) // Added for user prompt
 
   if (!jobTitle) return res.status(400).json({ error: 'Job title is required' })
 
@@ -227,8 +226,7 @@ app.post(['/api/generate-summary', '/api/ai/summary', '/api/ai/generate-summary'
 Target role: ${jobTitle}
 Key skills: ${skills || 'Not provided'}
 Experience: ${experience || 'Not provided'}
-Tone: ${tone}
-Additional instruction: ${instruction || 'None'}`
+Tone: ${tone}`
           }
         ]
       }),
@@ -373,12 +371,12 @@ app.get('/admin/audit', requireAdmin, async (req, res) => {
 // ── PDF GENERATION ──
 const cssMap = {}
   ;[1, 2, 3, 4].forEach(n => {
-    // UPDATED: Points to the new CSS folder inside FRONTEND
-    const file = path.join(FRONTEND, 'css', n === 1 ? 'main.css' : `style${n}.css`)
+    const file = path.join(FRONTEND, n === 1 ? 'style.css' : `style${n}.css`)
     try { cssMap[n] = fs.readFileSync(file, 'utf8') }
     catch { console.warn(`Could not load ${path.basename(file)}`); cssMap[n] = '' }
   })
 
+// Reuse one Browserless connection instead of reconnecting on every download
 let browserPromise = null
 function getBrowser() {
   if (!browserPromise) {
@@ -400,7 +398,7 @@ async function newPageWithRetry() {
   try {
     return await (await getBrowser()).newPage()
   } catch {
-    browserPromise = null
+    browserPromise = null // stale connection, reconnect once
     return await (await getBrowser()).newPage()
   }
 }
@@ -430,12 +428,10 @@ html, body { width: ${pdfW}px; height: ${pdfH}px; overflow: hidden; background: 
 </style></head><body>${resumeHTML}</body></html>`
 
     page = await newPageWithRetry()
-    // SECURITY: Disable JavaScript in Puppeteer to prevent XSS/SSRF exploits via the HTML input
-    await page.setJavaScriptEnabled(false)
     await page.setViewport({ width: pdfW, height: pdfH })
     await page.setContent(fullHTML, { waitUntil: 'domcontentloaded', timeout: 20000 })
 
-    // Wait for fonts
+    // Wait for fonts, but never hang forever
     await Promise.race([
       page.evaluate(() => document.fonts.ready),
       new Promise(resolve => setTimeout(resolve, 5000))
@@ -462,17 +458,15 @@ html, body { width: ${pdfW}px; height: ${pdfH}px; overflow: hidden; background: 
   }
 })
 
-// ── STATIC + ROOT ──
-// Serves the FRONTEND directory, making /pages, /css, /js publicly accessible
+// ── STATIC + ROOT (after all API routes) ──
 app.use(express.static(FRONTEND))
-
-app.get('/', (req, res) => res.sendFile(path.join(FRONTEND, 'pages', 'login.html')))
+app.get('/', (req, res) => res.sendFile(path.join(FRONTEND, 'login.html')))
 
 // ── 404 + ERROR HANDLERS ──
 app.use((req, res) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/auth') || req.path.startsWith('/admin'))
     return res.status(404).json({ error: 'Route not found' })
-  res.status(404).sendFile(path.join(FRONTEND, 'pages', 'login.html'))
+  res.status(404).sendFile(path.join(FRONTEND, 'login.html'))
 })
 
 app.use((err, req, res, next) => {

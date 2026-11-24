@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel</title>
+
+  <style>
+    body{
+      font-family: Arial, sans-serif;
+      background:#f4f4f4;
+      margin:0;
+      padding:20px;
+    }
+
+    h2{
+      margin-bottom:10px;
+    }
+
+    button{
+      padding:8px 12px;
+      margin-right:10px;
+      cursor:pointer;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:15px;
+      background:white;
+    }
+
+    th, td{
+      border:1px solid #ccc;
+      padding:8px;
+      font-size:14px;
+      text-align:left;
+    }
+
+    th{
+      background:#eee;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <h2>Admin Panel</h2>
+
+<button onclick="goBack()">⬅ Back</button> <button onclick="loadLogs()">Load Audit Logs</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Action</th>
+        <th>Details</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody id="logsTable"></tbody>
+  </table>
+
+<script>
+
+const token = localStorage.getItem("profile_token");
+const user  = JSON.parse(localStorage.getItem("profile_user") || "null");
+
+if (!token || !user) {
+  window.location.href = "admin-login.html";
+} else if (user.role !== "admin") {
+  alert("Admins only");
+  window.location.href = "index.html";
+}
+
+function goBack(){
+  localStorage.removeItem("profile_token");
+  localStorage.removeItem("profile_user");
+  window.location.href = "admin-login.html";
+}
+
+/* 📜 LOAD AUDIT LOGS */
+async function loadLogs(){
+  try{
+    const res = await fetch("/admin/audit", {
+      headers:{ "Authorization": "Bearer " + token }
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (res.status === 401) {
+      alert("Session expired, please log in again");
+      localStorage.removeItem("profile_token");
+      localStorage.removeItem("profile_user");
+      window.location.href = "admin-login.html";
+      return;
+    }
+
+    if (!res.ok || !Array.isArray(data)) {
+      alert("Error " + res.status + ": " + (data.error || "unexpected response"));
+      return;
+    }
+
+    const table = document.getElementById("logsTable");
+    table.innerHTML = "";
+
+    data.forEach(log=>{
+      const row = document.createElement("tr");
+      const cells = [
+        log.username || log.user_id,
+        log.action,
+        log.details,
+        new Date(log.created_at).toLocaleString()
+      ];
+      cells.forEach(text => {
+        const td = document.createElement("td");
+        td.textContent = text ?? "";
+        row.appendChild(td);
+      });
+      table.appendChild(row);
+    });
+
+  }catch(err){
+    console.error(err);
+    alert("Failed to load logs: " + err.message);
+  }
+}
+
+</script>
+
+</body>
+</html>

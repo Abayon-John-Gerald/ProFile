@@ -1,7 +1,9 @@
 .resume-grid {
   display: grid;
+  /* Increased minimum to 320px and max to 450px so they stay chunky */
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 30px;
+  /* Centering the grid if there's too much extra space on the sides */
   justify-content: center;
   max-width: 1400px;
   margin: 0 auto;
@@ -10,7 +12,9 @@
 
 .resume-card {
   width: 100%;
+  /* Important: let the grid decide the width */
   max-width: 450px;
+  /* Prevents them from getting TOO wide on giant monitors */
   margin: 0 auto;
   border-radius: 18px;
   overflow: hidden;
@@ -51,7 +55,10 @@
 
 .resume-info span {
   display: block;
+
 }
+
+
 
 .btn-danger {
   background: #c0392b;
