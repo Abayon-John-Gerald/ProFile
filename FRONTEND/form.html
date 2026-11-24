@@ -1861,6 +1861,33 @@
       const customDark = getCustomSectionsPreviewHTML(true)
       const customLight = getCustomSectionsPreviewHTML(false)
 
+      // Helper functions for the new layouts
+      const fmtSkills = () => skills.split(',').map(s => s.trim()).filter(Boolean)
+
+      const getWorkData = () => Array.from(document.querySelectorAll('#work-entries .entry-card')).map(entry => {
+        const inputs = entry.querySelectorAll('input')
+        return { title: inputs[0]?.value, company: inputs[1]?.value, duration: inputs[2]?.value, desc: entry.querySelector('textarea')?.value }
+      }).filter(w => w.title || w.company)
+
+      const getEduData = () => Array.from(document.querySelectorAll('#edu-entries .entry-card')).map(entry => {
+        const inputs = entry.querySelectorAll('input')
+        return { school: inputs[0]?.value, course: inputs[1]?.value, year: inputs[2]?.value }
+      }).filter(e => e.school || e.course)
+
+      const getCertData = () => Array.from(document.querySelectorAll('#cert-entries .entry-card')).map(entry => {
+        const inputs = entry.querySelectorAll('input')
+        return { name: inputs[0]?.value, org: inputs[1]?.value, date: inputs[2]?.value }
+      }).filter(c => c.name || c.org)
+
+      const getAwardData = () => Array.from(document.querySelectorAll('#award-entries .entry-card')).map(entry => {
+        const inputs = entry.querySelectorAll('input')
+        return { name: inputs[0]?.value, issuer: inputs[1]?.value, year: inputs[2]?.value }
+      }).filter(a => a.name || a.issuer)
+
+      const getLangData = () => Array.from(document.querySelectorAll('#lang-entries .entry-card')).map(entry => ({
+        name: entry.querySelector('input')?.value, level: entry.querySelector('select')?.value
+      })).filter(l => l.name)
+
         // Update visibility
         ;['prev-t1', 'prev-t2', 'prev-t3', 'prev-t4', 'prev-t5', 'prev-t6', 'prev-t7', 'prev-t8', 'prev-t9', 'prev-t10', 'prev-t11', 'prev-t12'].forEach((id, i) => {
           const el = document.getElementById(id)
@@ -1889,15 +1916,11 @@
         if (location) contactHTML += `<div style="margin-bottom:3px;">📍 ${location}</div>`
         document.getElementById('prev-contact').innerHTML = contactHTML
 
-        const eduSideData = Array.from(document.querySelectorAll('#edu-entries .entry-card')).map(entry => {
-          const inputs = entry.querySelectorAll('input')
-          return { school: inputs[0]?.value, course: inputs[1]?.value, year: inputs[2]?.value }
-        })
+        const eduSideData = getEduData()
         const eduWrap1 = document.getElementById('prev-t1-edu-wrap')
-        if (eduSideData.some(e => e.school || e.course)) {
+        if (eduSideData.length) {
           let eduHTML = ''
           eduSideData.forEach(e => {
-            if (!e.school && !e.course) return
             eduHTML += `<div style="margin-bottom:8px;">`
             if (e.year) eduHTML += `<div style="font-size:7px;color:#999;margin-bottom:1px;">${e.year}</div>`
             if (e.course) eduHTML += `<div style="font-size:8px;font-weight:600;color:#fff;text-transform:uppercase;line-height:1.3;">${e.course}</div>`
@@ -1909,22 +1932,18 @@
         } else { eduWrap1.style.display = 'none' }
 
         let skillsHTML = ''
-        if (skills.trim()) {
-          const list = skills.split(',').map(s => s.trim()).filter(Boolean)
+        if (fmtSkills().length) {
           skillsHTML = `<div style="font-size:8px;font-weight:600;color:#8FB89A;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;">Skills</div>`
-            + list.map(s => `<div style="font-size:8px;color:#ccc;margin-bottom:3px;display:flex;align-items:center;gap:5px;"><span style="color:#8FB89A;">•</span>${s}</div>`).join('')
+            + fmtSkills().map(s => `<div style="font-size:8px;color:#ccc;margin-bottom:3px;display:flex;align-items:center;gap:5px;"><span style="color:#8FB89A;">•</span>${s}</div>`).join('')
             + `<div style="height:1px;background:#444;margin:12px 0;"></div>`
         }
         document.getElementById('prev-skills-section').innerHTML = skillsHTML
 
-        const langSideData = Array.from(document.querySelectorAll('#lang-entries .entry-card')).map(entry => ({
-          name: entry.querySelector('input')?.value, level: entry.querySelector('select')?.value
-        }))
+        const langSideData = getLangData()
         const langWrap1 = document.getElementById('prev-t1-lang-wrap')
-        if (langSideData.some(l => l.name)) {
+        if (langSideData.length) {
           let langHTML = ''
           langSideData.forEach(l => {
-            if (!l.name) return
             langHTML += `<div style="font-size:8px;color:#ccc;margin-bottom:3px;"><span style="color:#fff;font-weight:500;">${l.name}</span>${l.level ? ` <span style="color:#999;font-size:7px;">(${l.level})</span>` : ''}</div>`
           })
           document.getElementById('prev-t1-lang').innerHTML = langHTML
@@ -1936,36 +1955,31 @@
         else { summaryWrap1.style.display = 'none' }
 
         const workWrap1 = document.getElementById('prev-work-wrap')
-        let workHTML = ''
-        document.querySelectorAll('#work-entries .entry-card').forEach(entry => {
-          const inputs = entry.querySelectorAll('input')
-          const t = inputs[0]?.value, c = inputs[1]?.value, dur = inputs[2]?.value, desc = entry.querySelector('textarea')?.value
-          if (t || c) {
+        const workData1 = getWorkData()
+        if (workData1.length) {
+          let workHTML = ''
+          workData1.forEach(w => {
             workHTML += `<div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;">
             <div style="flex-shrink:0;width:8px;height:8px;border-radius:50%;background:#2C2C2C;border:2px solid #8FB89A;margin-top:3px;"></div>
             <div style="flex:1;">
               <div style="display:flex;justify-content:space-between;align-items:baseline;">
-                <b style="font-size:9px;color:#1A1A18;">${t || ''}</b>
-                ${dur ? `<span style="font-size:7px;color:#7A776E;white-space:nowrap;">${dur}</span>` : ''}
+                <b style="font-size:9px;color:#1A1A18;">${w.title || ''}</b>
+                ${w.duration ? `<span style="font-size:7px;color:#7A776E;white-space:nowrap;">${w.duration}</span>` : ''}
               </div>
-              ${c ? `<div style="font-size:8px;color:#555;font-style:italic;margin-bottom:1px;">${c}</div>` : ''}
-              ${desc ? `<div style="font-size:8px;color:#444;line-height:1.4;">${desc}</div>` : ''}
+              ${w.company ? `<div style="font-size:8px;color:#555;font-style:italic;margin-bottom:1px;">${w.company}</div>` : ''}
+              ${w.desc ? `<div style="font-size:8px;color:#444;line-height:1.4;">${w.desc}</div>` : ''}
             </div>
           </div>`
-          }
-        })
-        if (workHTML) { document.getElementById('prev-work-section').innerHTML = workHTML; workWrap1.style.display = 'block' }
-        else { workWrap1.style.display = 'none' }
+          })
+          document.getElementById('prev-work-section').innerHTML = workHTML
+          workWrap1.style.display = 'block'
+        } else { workWrap1.style.display = 'none' }
 
         const certWrap1 = document.getElementById('prev-cert-wrap')
-        const certData1 = Array.from(document.querySelectorAll('#cert-entries .entry-card')).map(entry => {
-          const inputs = entry.querySelectorAll('input')
-          return { name: inputs[0]?.value, org: inputs[1]?.value, date: inputs[2]?.value }
-        })
-        if (certData1.some(c => c.name || c.org)) {
+        const certData1 = getCertData()
+        if (certData1.length) {
           let certHTML = ''
           certData1.forEach(c => {
-            if (!c.name && !c.org) return
             certHTML += `<div style="margin-bottom:5px;"><div style="font-weight:600;font-size:9px;">${c.name || ''}</div>${c.org ? `<div style="font-size:8px;color:#555;">${c.org}</div>` : ''} ${c.date ? `<div style="font-size:7px;color:#7A776E;">${c.date}</div>` : ''}</div>`
           })
           document.getElementById('prev-cert-section').innerHTML = certHTML
@@ -1973,14 +1987,10 @@
         } else { certWrap1.style.display = 'none' }
 
         const awardWrap1 = document.getElementById('prev-award-wrap')
-        const awardData1 = Array.from(document.querySelectorAll('#award-entries .entry-card')).map(entry => {
-          const inputs = entry.querySelectorAll('input')
-          return { name: inputs[0]?.value, issuer: inputs[1]?.value, year: inputs[2]?.value }
-        })
-        if (awardData1.some(a => a.name || a.issuer)) {
+        const awardData1 = getAwardData()
+        if (awardData1.length) {
           let awardHTML = ''
           awardData1.forEach(a => {
-            if (!a.name && !a.issuer) return
             awardHTML += `<div style="background:#F7F5F0;padding:6px 8px;border-left:2.5px solid #8FB89A;">${a.year ? `<div style="font-size:7px;color:#7A776E;">${a.year}</div>` : ''}<div style="font-weight:600;font-size:8px;">${a.name || ''}</div>${a.issuer ? `<div style="font-size:7px;color:#555;">${a.issuer}</div>` : ''}</div>`
           })
           document.getElementById('prev-award-section').innerHTML = awardHTML
@@ -2011,67 +2021,56 @@
         else { contactWrap2.style.display = 'none' }
 
         const eduWrap2 = document.getElementById('prev-t2-edu-wrap')
-        let e2 = ''
-        document.querySelectorAll('#edu-entries .entry-card').forEach(entry => {
-          const inputs = entry.querySelectorAll('input')
-          const school = inputs[0]?.value, course = inputs[1]?.value, year = inputs[2]?.value
-          if (school || course) {
-            e2 += `<div style="margin-bottom:6px;">${school ? `<div style="font-weight:600;">${school}</div>` : ''} ${course ? `<div style="color:#555;">${course}</div>` : ''} ${year ? `<div style="color:#7A776E;font-size:7px;">${year}</div>` : ''}</div>`
-          }
-        })
-        if (e2) { document.getElementById('prev-t2-edu').innerHTML = e2; eduWrap2.style.display = 'block' }
-        else { eduWrap2.style.display = 'none' }
+        const eduData2 = getEduData()
+        if (eduData2.length) {
+          let e2 = ''
+          eduData2.forEach(e => {
+            e2 += `<div style="margin-bottom:6px;">${e.school ? `<div style="font-weight:600;">${e.school}</div>` : ''} ${e.course ? `<div style="color:#555;">${e.course}</div>` : ''} ${e.year ? `<div style="color:#7A776E;font-size:7px;">${e.year}</div>` : ''}</div>`
+          })
+          document.getElementById('prev-t2-edu').innerHTML = e2
+          eduWrap2.style.display = 'block'
+        } else { eduWrap2.style.display = 'none' }
 
         const langWrap2 = document.getElementById('prev-t2-lang-wrap')
-        const langData2 = Array.from(document.querySelectorAll('#lang-entries .entry-card')).map(entry => ({
-          name: entry.querySelector('input')?.value, level: entry.querySelector('select')?.value
-        }))
-        if (langData2.some(l => l.name)) {
+        const langData2 = getLangData()
+        if (langData2.length) {
           let langHTML2 = ''
-          langData2.forEach(l => { if (!l.name) return; langHTML2 += `<div style="margin-bottom:2px;"><span style="font-weight:600;">${l.name}</span>${l.level ? ` <span style="color:#7A776E;font-size:7px;">(${l.level})</span>` : ''}</div>` })
+          langData2.forEach(l => { langHTML2 += `<div style="margin-bottom:2px;"><span style="font-weight:600;">${l.name}</span>${l.level ? ` <span style="color:#7A776E;font-size:7px;">(${l.level})</span>` : ''}</div>` })
           document.getElementById('prev-t2-lang').innerHTML = langHTML2
           langWrap2.style.display = 'block'
         } else { langWrap2.style.display = 'none' }
 
         const skillsWrap2 = document.getElementById('prev-t2-skills-wrap')
-        if (skills.trim()) {
-          const skillList = skills.split(',').map(s => s.trim()).filter(Boolean)
-          document.getElementById('prev-t2-skills').innerHTML = skillList.map(s => `<div style="display:flex;gap:4px;align-items:flex-start;margin-bottom:2px;break-inside:avoid;"><span style="color:#4A5568;flex-shrink:0;">•</span>${s}</div>`).join('')
+        if (fmtSkills().length) {
+          document.getElementById('prev-t2-skills').innerHTML = fmtSkills().map(s => `<div style="display:flex;gap:4px;align-items:flex-start;margin-bottom:2px;break-inside:avoid;"><span style="color:#4A5568;flex-shrink:0;">•</span>${s}</div>`).join('')
           skillsWrap2.style.display = 'block'
         } else { skillsWrap2.style.display = 'none' }
 
         const workWrap2 = document.getElementById('prev-t2-work-wrap')
-        let w2 = ''
-        document.querySelectorAll('#work-entries .entry-card').forEach(entry => {
-          const inputs = entry.querySelectorAll('input')
-          const t = inputs[0]?.value, c = inputs[1]?.value, dur = inputs[2]?.value, desc = entry.querySelector('textarea')?.value
-          if (t || c) {
-            w2 += `<div style="margin-bottom:7px;"><div style="display:flex;justify-content:space-between;align-items:baseline;"><div style="font-weight:700;">${t || ''}</div>${dur ? `<span style="color:#7A776E;font-size:7px;white-space:nowrap;">${dur}</span>` : ''}</div>${c ? `<div style="color:#4A5568;font-style:italic;margin-bottom:2px;">${c}</div>` : ''} ${desc ? `<div style="color:#444;line-height:1.5;">${desc}</div>` : ''}</div>`
-          }
-        })
-        if (w2) { document.getElementById('prev-t2-work').innerHTML = w2; workWrap2.style.display = 'block' }
-        else { workWrap2.style.display = 'none' }
+        const workData2 = getWorkData()
+        if (workData2.length) {
+          let w2 = ''
+          workData2.forEach(w => {
+            w2 += `<div style="margin-bottom:7px;"><div style="display:flex;justify-content:space-between;align-items:baseline;"><div style="font-weight:700;">${w.title || ''}</div>${w.duration ? `<span style="color:#7A776E;font-size:7px;white-space:nowrap;">${w.duration}</span>` : ''}</div>${w.company ? `<div style="color:#4A5568;font-style:italic;margin-bottom:2px;">${w.company}</div>` : ''} ${w.desc ? `<div style="color:#444;line-height:1.5;">${w.desc}</div>` : ''}</div>`
+          })
+          document.getElementById('prev-t2-work').innerHTML = w2
+          workWrap2.style.display = 'block'
+        } else { workWrap2.style.display = 'none' }
 
         const certWrap2 = document.getElementById('prev-t2-cert-wrap')
-        const certData2 = Array.from(document.querySelectorAll('#cert-entries .entry-card')).map(entry => {
-          const inputs = entry.querySelectorAll('input')
-          return { name: inputs[0]?.value, org: inputs[1]?.value, date: inputs[2]?.value }
-        })
-        if (certData2.some(c => c.name || c.org)) {
+        const certData2 = getCertData()
+        if (certData2.length) {
           let certHTML2 = ''
-          certData2.forEach(c => { if (!c.name && !c.org) return; certHTML2 += `<div style="margin-bottom:5px;"><div style="font-weight:600;">${c.name || ''}</div>${c.org ? `<div style="color:#555;">${c.org}</div>` : ''} ${c.date ? `<div style="color:#7A776E;font-size:7px;">${c.date}</div>` : ''}</div>` })
+          certData2.forEach(c => { certHTML2 += `<div style="margin-bottom:5px;"><div style="font-weight:600;">${c.name || ''}</div>${c.org ? `<div style="color:#555;">${c.org}</div>` : ''} ${c.date ? `<div style="color:#7A776E;font-size:7px;">${c.date}</div>` : ''}</div>` })
           document.getElementById('prev-t2-cert').innerHTML = certHTML2
           certWrap2.style.display = 'block'
         } else { certWrap2.style.display = 'none' }
 
         const awardWrap2 = document.getElementById('prev-t2-award-wrap')
-        const awardData2 = Array.from(document.querySelectorAll('#award-entries .entry-card')).map(entry => {
-          const inputs = entry.querySelectorAll('input')
-          return { name: inputs[0]?.value, issuer: inputs[1]?.value, year: inputs[2]?.value }
-        })
-        if (awardData2.some(a => a.name || a.issuer)) {
+        const awardData2 = getAwardData()
+        if (awardData2.length) {
           let awardHTML2 = ''
-          awardData2.forEach(a => { if (!a.name && !a.issuer) return; awardHTML2 += `<div style="margin-bottom:5px;"><div style="font-weight:600;">${a.name || ''}</div>${a.issuer ? `<div style="color:#555;">${a.issuer}</div>` : ''} ${a.year ? `<div style="color:#7A776E;font-size:7px;">${a.year}</div>` : ''}</div>` })
+          awardData2.forEach(a => { awardHTML2 += `<div style="margin-bottom:5px;"><div style="font-weight:600;">${a.name || ''}</div>${a.issuer ? `<div style="color:#555;">${a.issuer}</div>` : ''} ${a.year ? `<div style="color:#7A776E;font-size:7px;">${a.year}</div>` : ''}</div>` })
           document.getElementById('prev-t2-award').innerHTML = awardHTML2
           awardWrap2.style.display = 'block'
         } else { awardWrap2.style.display = 'none' }
@@ -2112,15 +2111,11 @@
         if (photoBase64) { t4photo.style.display = 'block'; t4img.src = photoBase64; t4noPhoto.style.display = 'none' }
         else { t4photo.style.display = 'none'; t4noPhoto.style.display = 'block' }
 
-        const eduSidebarData = Array.from(document.querySelectorAll('#edu-entries .entry-card')).map(entry => {
-          const inputs = entry.querySelectorAll('input')
-          return { school: inputs[0]?.value, course: inputs[1]?.value, year: inputs[2]?.value }
-        })
+        const eduSidebarData = getEduData()
         const eduWrap = document.getElementById('prev-t4-edu-wrap')
-        if (eduSidebarData.some(e => e.school || e.course)) {
+        if (eduSidebarData.length) {
           let eduHTML = ''
           eduSidebarData.forEach(e => {
-            if (!e.school && !e.course) return
             if (e.year) eduHTML += `<div style="font-size:7px;color:#7A776E;margin-bottom:1px;">${e.year}</div>`
             if (e.course) eduHTML += `<div style="font-weight:600;color:#1A1A18;">${e.course}</div>`
             if (e.school) eduHTML += `<div style="font-style:italic;">${e.school}</div>`
@@ -2131,30 +2126,25 @@
         } else { eduWrap.style.display = 'none' }
 
         const skillsWrap = document.getElementById('prev-t4-skills-wrap')
-        if (skills.trim()) {
-          document.getElementById('prev-t4-skills').innerHTML = skills.split(',').map(s => s.trim()).filter(Boolean).map(s => `<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;"><span style="color:#8FB89A;">•</span>${s}</div>`).join('')
+        if (fmtSkills().length) {
+          document.getElementById('prev-t4-skills').innerHTML = fmtSkills().map(s => `<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;"><span style="color:#8FB89A;">•</span>${s}</div>`).join('')
           skillsWrap.style.display = 'block'
         } else { skillsWrap.style.display = 'none' }
 
-        const langSidebarData = Array.from(document.querySelectorAll('#lang-entries .entry-card')).map(entry => ({
-          name: entry.querySelector('input')?.value, level: entry.querySelector('select')?.value
-        }))
+        const langSidebarData = getLangData()
         const langWrap = document.getElementById('prev-t4-lang-wrap')
-        if (langSidebarData.some(l => l.name)) {
+        if (langSidebarData.length) {
           let langHTML = ''
-          langSidebarData.forEach(l => { if (!l.name) return; langHTML += `<div style="margin-bottom:3px;"><span style="color:#1A1A18;font-weight:600;">${l.name}</span>${l.level ? ` <span style="font-size:7px;">(${l.level})</span>` : ''}</div>` })
+          langSidebarData.forEach(l => { langHTML += `<div style="margin-bottom:3px;"><span style="color:#1A1A18;font-weight:600;">${l.name}</span>${l.level ? ` <span style="font-size:7px;">(${l.level})</span>` : ''}</div>` })
           document.getElementById('prev-t4-lang-sidebar').innerHTML = langHTML
           langWrap.style.display = 'block'
         } else { langWrap.style.display = 'none' }
 
-        const certSidebarData = Array.from(document.querySelectorAll('#cert-entries .entry-card')).map(entry => {
-          const inputs = entry.querySelectorAll('input')
-          return { name: inputs[0]?.value, org: inputs[1]?.value, date: inputs[2]?.value }
-        })
+        const certSidebarData = getCertData()
         const certSidebarWrap = document.getElementById('prev-t4-cert-sidebar-wrap')
-        if (certSidebarData.some(c => c.name || c.org)) {
+        if (certSidebarData.length) {
           let certHTML = ''
-          certSidebarData.forEach(c => { if (!c.name && !c.org) return; certHTML += `<div style="margin-bottom:5px;">${c.name ? `<div style="font-weight:600;color:#1A1A18;">${c.name}</div>` : ''} ${c.org ? `<div style="font-style:italic;">${c.org}</div>` : ''} ${c.date ? `<div style="font-size:7px;">${c.date}</div>` : ''}</div>` })
+          certSidebarData.forEach(c => { certHTML += `<div style="margin-bottom:5px;">${c.name ? `<div style="font-weight:600;color:#1A1A18;">${c.name}</div>` : ''} ${c.org ? `<div style="font-style:italic;">${c.org}</div>` : ''} ${c.date ? `<div style="font-size:7px;">${c.date}</div>` : ''}</div>` })
           document.getElementById('prev-t4-cert-sidebar').innerHTML = certHTML
           certSidebarWrap.style.display = 'block'
         } else { certSidebarWrap.style.display = 'none' }
@@ -2170,28 +2160,24 @@
         else { summaryWrap.style.display = 'none' }
 
         const workWrap = document.getElementById('prev-t4-work-wrap')
-        let workHTML = ''
-        document.querySelectorAll('#work-entries .entry-card').forEach(entry => {
-          const inputs = entry.querySelectorAll('input')
-          const t = inputs[0]?.value, c = inputs[1]?.value, dur = inputs[2]?.value, desc = entry.querySelector('textarea')?.value
-          if (t || c) {
+        const workData4 = getWorkData()
+        if (workData4.length) {
+          let workHTML = ''
+          workData4.forEach(w => {
             workHTML += `<div style="display:flex;gap:6px;margin-bottom:8px;align-items:flex-start;">
             <div style="flex-shrink:0;width:7px;height:7px;border-radius:50%;background:#2B3A2E;border:1.5px solid #8FB89A;margin-top:3px;"></div>
-            <div style="flex:1;"><div style="display:flex;justify-content:space-between;align-items:baseline;"><b style="font-size:9px;">${t || ''}</b>${dur ? `<span style="font-size:7px;color:#7A776E;white-space:nowrap;">${dur}</span>` : ''}</div>${c ? `<div style="font-size:8px;color:#555;font-style:italic;margin-bottom:1px;">${c}</div>` : ''} ${desc ? `<div style="font-size:8px;color:#444;line-height:1.4;">${desc}</div>` : ''}</div>
+            <div style="flex:1;"><div style="display:flex;justify-content:space-between;align-items:baseline;"><b style="font-size:9px;">${w.title || ''}</b>${w.duration ? `<span style="font-size:7px;color:#7A776E;white-space:nowrap;">${w.duration}</span>` : ''}</div>${w.company ? `<div style="font-size:8px;color:#555;font-style:italic;margin-bottom:1px;">${w.company}</div>` : ''} ${w.desc ? `<div style="font-size:8px;color:#444;line-height:1.4;">${w.desc}</div>` : ''}</div>
           </div>`
-          }
-        })
-        if (workHTML) { document.getElementById('prev-t4-work').innerHTML = workHTML; workWrap.style.display = 'block' }
-        else { workWrap.style.display = 'none' }
+          })
+          document.getElementById('prev-t4-work').innerHTML = workHTML
+          workWrap.style.display = 'block'
+        } else { workWrap.style.display = 'none' }
 
         const awardWrap = document.getElementById('prev-t4-award-wrap')
-        const awardData = Array.from(document.querySelectorAll('#award-entries .entry-card')).map(entry => {
-          const inputs = entry.querySelectorAll('input')
-          return { name: inputs[0]?.value, issuer: inputs[1]?.value, year: inputs[2]?.value }
-        })
-        if (awardData.some(a => a.name || a.issuer)) {
+        const awardData4 = getAwardData()
+        if (awardData4.length) {
           let awardHTML = ''
-          awardData.forEach(a => { if (!a.name && !a.issuer) return; awardHTML += `<div style="background:#F7F5F0;padding:6px 8px;border-left:2.5px solid #8FB89A;">${a.year ? `<div style="font-size:7px;color:#7A776E;">${a.year}</div>` : ''}<div style="font-weight:600;font-size:8px;">${a.name || ''}</div>${a.issuer ? `<div style="font-size:7px;color:#555;">${a.issuer}</div>` : ''}</div>` })
+          awardData4.forEach(a => { awardHTML += `<div style="background:#F7F5F0;padding:6px 8px;border-left:2.5px solid #8FB89A;">${a.year ? `<div style="font-size:7px;color:#7A776E;">${a.year}</div>` : ''}<div style="font-weight:600;font-size:8px;">${a.name || ''}</div>${a.issuer ? `<div style="font-size:7px;color:#555;">${a.issuer}</div>` : ''}</div>` })
           document.getElementById('prev-t4-award').innerHTML = awardHTML
           awardWrap.style.display = 'block'
         } else { awardWrap.style.display = 'none' }
@@ -2366,13 +2352,6 @@
         const desc = entry.querySelector('textarea')?.value.trim()
         if (title || company) workEntries.push(`${title}${company ? ' at ' + company : ''}${dur ? ' (' + dur + ')' : ''}${desc ? ': ' + desc : ''}`)
       })
-
-      let contextParts = []
-      if (name) contextParts.push(`Name: ${name}`)
-      if (jobtitle) contextParts.push(`Job Title: ${jobtitle}`)
-      if (location) contextParts.push(`Location: ${location}`)
-      if (skills) contextParts.push(`Skills: ${skills}`)
-      if (workEntries.length) contextParts.push(`Work Experience:\n${workEntries.map(e => '- ' + e).join('\n')}`)
 
       // Loading state
       btn.disabled = true
