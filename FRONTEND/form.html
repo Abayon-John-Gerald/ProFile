@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&family=Georgia&family=Lato:wght@300;400;700&family=Merriweather:wght@300;400;700&family=Playfair+Display:wght@400;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&family=Lato:wght@300;400;700&family=Merriweather:wght@300;400;700&family=Playfair+Display:wght@400;700&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="form.css">
   <script src="auth-guard.js"></script>
@@ -1117,7 +1117,8 @@
         if (!document.getElementById(linkId)) {
           const link = document.createElement('link');
           link.id = linkId;
-          link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/ /g, '+')}:wght@300;400;500;700&display=swap`;
+          const weights = { 'Playfair Display': '400;700', 'Merriweather': '300;400;700', 'Lato': '300;400;700', 'DM Sans': '300;400;500;700' }[fontName] || '400;700';
+          link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/ /g, '+')}:wght@${weights}&display=swap`;
           link.rel = 'stylesheet';
           document.head.appendChild(link);
         }
@@ -1138,16 +1139,18 @@
         }
         /* Force base size everywhere, but scale down specific headers slightly */
         #previewResume .text-content { font-size: ${sizeNum}px !important; }
-        #previewResume .prev-name, #previewResume [id$="-name"] { font-size: ${sizeNum * 2}px !important; }
-        #previewResume .prev-jobtitle, #previewResume [id$="-job"] { font-size: ${sizeNum + 2}px !important; }
+        #previewResume .prev-name, #previewResume [id$="-name"], #previewResume [id$="-name-main"] { font-size: ${sizeNum * 2}px !important; }
+        #previewResume .prev-jobtitle, #previewResume [id$="-job"], #previewResume [id$="-job-main"] { font-size: ${sizeNum + 2}px !important; }
         
         /* Keep the zoom levels intact for the layout */
         #prev-t2-summary-wrap, #prev-t2-contact-wrap, #prev-t2-edu-wrap, #prev-t2-lang-wrap, #prev-t2-custom-left, #prev-t2-skills-wrap, #prev-t2-work-wrap, #prev-t2-cert-wrap, #prev-t2-award-wrap, #prev-t2-custom-right,
         #prev-t1-edu-wrap, #prev-skills-section, #prev-t1-lang-wrap, #prev-contact, #prev-t1-custom, #prev-t1-summary-wrap, #prev-work-wrap, #prev-cert-wrap, #prev-award-wrap, #prev-t1-main-custom,
         #prev-t4-edu-wrap, #prev-t4-skills-wrap, #prev-t4-lang-wrap, #prev-t4-cert-sidebar-wrap, #prev-t4-contact, #prev-t4-custom-sidebar, #prev-t4-summary-wrap, #prev-t4-work-wrap, #prev-t4-award-wrap, #prev-t4-custom-main {
-          zoom: 1.4;
+          zoom: ${(1.4 * sizeNum / 12).toFixed(3)};
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
-        #prev-t3-summary, #prev-t3-work, #prev-t3-edu, #prev-t3-custom, #prev-t3-contact { zoom: 1.0; line-height: 1.4 !important; }
+        #prev-t3-summary, #prev-t3-work, #prev-t3-edu, #prev-t3-custom, #prev-t3-contact { zoom: ${(sizeNum / 12).toFixed(3)}; overflow-wrap: anywhere; line-height: 1.4 !important; }
       `
 
       saveDraft()

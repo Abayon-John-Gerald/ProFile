@@ -99,7 +99,8 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
         const fontName = data.fontFamily.replace(/'/g, '').split(',')[0].trim();
         if (fontName && fontName !== 'Times New Roman' && fontName !== 'Georgia') {
           const link = document.createElement('link');
-          link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/ /g, '+')}:wght@300;400;500;700&display=swap`;
+          const weights = { 'Playfair Display': '400;700', 'Merriweather': '300;400;700', 'Lato': '300;400;700', 'DM Sans': '300;400;500;700' }[fontName] || '400;700';
+          link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/ /g, '+')}:wght@${weights}&display=swap`;
           link.rel = 'stylesheet';
           document.head.appendChild(link);
         }
@@ -124,6 +125,8 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
         /* Scale font sizes proportionally based on user selection (base 12px) */
         #resume .text-content {
           font-size: ${selectedSize}px !important;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
         #resume [style*="font-size"] {
           /* Remove hardcoded inline font sizes */
@@ -288,8 +291,11 @@ function initResumeEditor({ templateNum, storageKey, renderFromFormData }) {
       }
 
       try {
-        // Only send the file. Extra text/title makes some apps fail.
-        await navigator.share({ files: [file] })
+        await navigator.share({
+          files: [file],
+          title: 'My Resume',
+          text: 'Here is my resume generated from ProFile.'
+        })
       } catch (err) {
         if (err.name === 'AbortError') return
         if (err.name === 'NotAllowedError') {
