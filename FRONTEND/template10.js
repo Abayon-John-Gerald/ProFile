@@ -2,9 +2,16 @@ initResumeEditor({
     templateNum: 10,
     storageKey: 'profile_canvas_state_t10',
     renderFromFormData({ data, buildHtmlElement, buildImageElement }) {
-        const fontSize = Math.min(Math.max(parseFloat(data.fontSize) || 12, 9), 14)
+        const fontSize = Math.min(Math.max(parseFloat(data.fontSize) || 12, 9), 15)
         const accent = data.accentDark || '#1C291C'
         const esc = v => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+        // Custom sections added in the form (each: { name, entries: [text, ...] })
+        const customHTML = headFn => (data.customSections || []).map(sec => {
+            const items = (sec.entries || []).filter(e => e && String(e).trim())
+            if (!items.length) return ''
+            return headFn(esc(sec.name)) + items.map(i => `<div style="display:flex;gap:8px;margin-bottom:3px;font-size:${fontSize + 1}px;line-height:1.35;"><span>•</span><span>${esc(i)}</span></div>`).join('') + `<div style="height:10px;"></div>`
+        }).join('')
 
         // Row boundaries (no overlaps): summary 190-400, edu 400-540, exp 540-780, awards 780-880, bottom 880-1123
         const R = { sum: 190, edu: 400, exp: 540, aw: 780, bot: 880 }
@@ -36,6 +43,7 @@ initResumeEditor({
 
         let right1 = `<div style="padding:16px 36px;">`
         if (data.summary) right1 += `<div style="font-size:${fontSize + 2}px;line-height:1.45;text-align:justify;">${esc(data.summary)}</div>`
+        right1 += customHTML(t => `<div style="font-size:${fontSize + 4}px;font-weight:bold;margin:10px 0 6px;">${t}</div>`)
         right1 += `</div>`
         buildHtmlElement({ left: 260, top: R.sum, width: 534, html: right1 })
 
