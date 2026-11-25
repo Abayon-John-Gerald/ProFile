@@ -1149,6 +1149,17 @@
     </div>
   </div>
 
+  <style>
+    /* Same box rules the built resume gets from editor.js + styleN.css */
+    #previewResume .rs-content { font-size: 16px; line-height: 1.45; color: #000; overflow: visible; white-space: normal; overflow-wrap: anywhere; word-break: break-word; padding: 0; }
+  </style>
+  <script>
+    // Lets templateN.js be reused by the live preview: instead of building a full editor
+    // it just hands us its renderer. (The real initResumeEditor lives in editor.js.)
+    window.__previewRenderers = {}
+    window.initResumeEditor = function (cfg) { window.__previewRenderers[String(cfg.templateNum)] = cfg.renderFromFormData }
+  </script>
+
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const rawTemplate = urlParams.get('template');
@@ -1169,8 +1180,8 @@
       '12': { dark: '#4A3B32', light: '#8FB89A' }
     };
 
-    const savedDark = localStorage.getItem('profile_accent_dark');
-    const savedLight = localStorage.getItem('profile_accent_light');
+    const savedDark = localStorage.getItem('profile_accent_dark_t' + templateNum);
+    const savedLight = localStorage.getItem('profile_accent_light_t' + templateNum);
 
     window.currentAccentDark = savedDark || TEMPLATE_DEFAULTS[templateNum].dark;
     window.currentAccentLight = savedLight || TEMPLATE_DEFAULTS[templateNum].light;
@@ -1268,30 +1279,6 @@
       const t4 = document.getElementById('prev-t4')
       if (t4) t4.children[0].style.background = dark
 
-      const t5 = document.getElementById('prev-t5')
-      if (t5) t5.querySelector('div:nth-child(2)').style.background = dark
-
-      const t6 = document.getElementById('prev-t6')
-      if (t6) t6.children[0].style.background = dark
-
-      const t7 = document.getElementById('prev-t7')
-      if (t7) t7.children[0].style.background = dark
-
-      const t8 = document.getElementById('prev-t8')
-      if (t8) t8.children[0].style.background = dark
-
-      const t9 = document.getElementById('prev-t9')
-      if (t9) { t9.children[1].style.background = dark; t9.children[4].style.background = dark }
-
-      const t10 = document.getElementById('prev-t10')
-      if (t10) t10.children[0].style.background = dark
-
-      const t11 = document.getElementById('prev-t11')
-      if (t11) t11.children[0].style.background = dark
-
-      const t12 = document.getElementById('prev-t12')
-      if (t12) { t12.children[0].style.background = dark; t12.children[1].style.background = dark }
-
       let accentStyle = document.getElementById('accent-color-style')
       if (!accentStyle) {
         accentStyle = document.createElement('style')
@@ -1319,14 +1306,10 @@
 
       #prev-t3 > div:first-child { background: ${dark} !important; }
       
-      #prev-t8 > div:first-child { background: ${dark} !important; }
-      #prev-t9 > div:nth-child(2) { background: ${dark} !important; }
-      #prev-t10 > div:first-child { background: ${dark} !important; }
-      #prev-t11 > div:first-child { background: ${dark} !important; }
-      #prev-t12 > div:first-child { background: ${dark} !important; }
     `
 
-      saveDraft()
+      if (parseInt(templateNum) >= 5) updatePreview()
+      else saveDraft()
     }
 
     function loadAccentColor(dark, light) {
@@ -1584,6 +1567,7 @@
         fontFamily: document.getElementById('fontFamily').value,
         fontSize: document.getElementById('fontSize').value,
         paperSize,
+        templateNum: templateNum,
         photo: photoBase64,
         accentDark: window.currentAccentDark,
         accentLight: window.currentAccentLight
@@ -1691,9 +1675,67 @@
       if (!(data.work || []).length) addEntry('work')
       if (!(data.edu || []).length) addEntry('edu')
 
-      if (data.accentDark) loadAccentColor(data.accentDark, data.accentLight)
+      // Only trust a saved accent if it was saved FOR THIS template
+      // (templates 5-12 stamp templateNum; older data without it falls back to the template default)
+      const accentIsMine = String(data.templateNum) === templateNum || (parseInt(templateNum) < 5 && !data.templateNum)
+      if (accentIsMine && data.accentDark) loadAccentColor(data.accentDark, data.accentLight)
+      else resetAccentColor()
       applyCustomizations()
       updatePreview()
+    }
+
+    // Draws templates 5-12 in the live preview using the exact renderFromFormData
+    // from templateN.js, so the preview and the built resume can never drift apart.
+    function renderTemplatePreview() {
+      const root = document.getElementById('prev-t' + templateNum)
+      if (!root) return
+      root.innerHTML = ''
+      const renderer = window.__previewRenderers && window.__previewRenderers[templateNum]
+      if (!renderer) return // templateN.js still loading; its onload re-runs updatePreview()
+
+      const data = collectFormData()
+      const px = v => (typeof v === 'number' ? v : parseInt(v) || 0)
+
+      function buildTextElement(opts = {}) {
+        const el = document.createElement('div')
+        el.style.position = 'absolute'
+        el.style.left = px(opts.left) + 'px'
+        el.style.top = px(opts.top) + 'px'
+        if (opts.width) el.style.width = (parseInt(opts.width) || 200) + 'px'
+        el.style.height = 'auto'
+        const content = document.createElement('div')
+        content.className = 'rs-content'
+        if (opts.html) content.innerHTML = opts.html
+        else content.textContent = opts.text ?? ''
+        if (opts.fontSize) content.style.fontSize = opts.fontSize
+        if (opts.color) content.style.color = opts.color
+        if (opts.fontWeight) content.style.fontWeight = opts.fontWeight
+        el.appendChild(content)
+        root.appendChild(el)
+        return el
+      }
+      const buildHtmlElement = opts => buildTextElement({ ...opts, html: opts.html })
+      function buildImageElement(opts = {}) {
+        const el = document.createElement('div')
+        el.style.position = 'absolute'
+        el.style.left = (opts.left ?? 0) + 'px'
+        el.style.top = (opts.top ?? 0) + 'px'
+        el.style.width = (opts.width ?? 100) + 'px'
+        el.style.height = (opts.height ?? 100) + 'px'
+        const img = document.createElement('img')
+        img.src = opts.src
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;border-radius:' + (opts.borderRadius ?? '0')
+        img.draggable = false
+        el.appendChild(img)
+        root.appendChild(el)
+        return el
+      }
+
+      try {
+        renderer({ data, buildTextElement, buildHtmlElement, buildImageElement })
+      } catch (e) {
+        console.error('Preview render error (template ' + templateNum + '):', e)
+      }
     }
 
     function updatePreview() {
@@ -1744,377 +1786,8 @@
       if (templateNum === '3') { /* ... existing t3 code ... */ }
       if (templateNum === '4') { /* ... existing t4 code ... */ }
 
-      // ── TEMPLATE 5 ──
-      if (templateNum === '5') {
-        const el = document.getElementById('prev-t5');
-        let html = `<div style="text-align:center;margin-bottom:20px;">
-          <div style="font-family:'Playfair Display',serif;font-size:${36}px;font-weight:700;text-transform:uppercase;margin-bottom:6px;">${name}</div>
-          <div style="font-size:16px;margin-bottom:16px;">${jobtitle}</div>
-          <div style="display:flex;justify-content:center;gap:20px;font-size:13px;">${[email, location, phone].filter(Boolean).map(c => `<span>${c}</span>`).join('')}</div>
-        </div>
-        <div style="position:relative;height:4px;background:#0B132B;margin:20px 0 30px;">
-          <div style="position:absolute;left:50%;transform:translateX(-50%);top:-18px;background:#0B132B;color:white;padding:4px 24px;border-radius:20px;font-size:14px;">ABOUT ME</div>
-        </div>`;
-        if (summary) html += `<div style="text-align:center;font-size:16px;line-height:1.45;margin-bottom:30px;padding:0 20px;">${summary}</div>`;
-
-        html += `<div style="display:flex;gap:30px;margin-bottom:30px;">`;
-        // Edu
-        html += `<div style="flex:1;">`;
-        if (getEduData().length) {
-          html += `<div style="background:#0B132B;border-radius:6px;color:white;font-size:18px;text-align:center;padding:10px 0;margin-bottom:16px;">Education</div>`;
-          getEduData().forEach(e => {
-            html += `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:16px;color:#0B132B;"><span>${e.school || ''}</span> <span>${e.year || ''}</span></div>`;
-            if (e.course) html += `<div style="border-left:2px solid #A0A0A0;padding-left:10px;font-size:12px;margin-bottom:12px;">${e.course}</div>`;
-          });
-        }
-        html += `</div>`;
-        // Skills
-        html += `<div style="flex:1;">`;
-        if (fmtSkills().length) {
-          html += `<div style="background:#0B132B;border-radius:6px;color:white;font-size:18px;text-align:center;padding:10px 0;margin-bottom:16px;">Skills</div>`;
-          html += `<div style="border-left:2px solid #A0A0A0;padding-left:14px;font-size:14px;line-height:1.6;">`;
-          fmtSkills().forEach(s => html += `<div style="display:flex;gap:8px;margin-bottom:4px;"><span>•</span> <span>${s}</span></div>`);
-          html += `</div>`;
-        }
-        html += `</div></div>`;
-
-        // Work
-        if (getWorkData().length) {
-          html += `<div style="background:#0B132B;border-radius:6px;color:white;font-size:18px;text-align:center;padding:10px 0;margin-bottom:16px;">Work Experience’s</div>`;
-          getWorkData().forEach(w => {
-            html += `<div style="margin-bottom:20px;">
-              <div style="font-size:16px;color:#0B132B;margin-bottom:4px;">${w.company || ''}</div>
-              <div style="border-left:2px solid #A0A0A0;padding-left:14px;margin-left:6px;">
-                <div style="font-size:14px;margin-bottom:2px;">${w.title || ''}</div>
-                <div style="font-size:14px;margin-bottom:8px;">${w.duration || ''}</div>
-                ${w.desc ? `<div style="font-size:14px;line-height:1.4;">${w.desc}</div>` : ''}
-              </div>
-            </div>`;
-          });
-        }
-
-        // Awards
-        if (getAwardData().length) {
-          html += `<div style="background:#0B132B;border-radius:6px;color:white;font-size:18px;text-align:center;padding:10px 0;margin-bottom:16px;">Awards and Achievement</div>`;
-          getAwardData().forEach(a => {
-            html += `<div style="border-left:2px solid #A0A0A0;padding-left:14px;font-size:16px;margin-bottom:8px;">${a.name} ${a.issuer ? '- ' + a.issuer : ''} ${a.year || ''}</div>`;
-          });
-          html += `<div style="height:16px;"></div>`;
-        }
-
-        // Cert & Lang
-        html += `<div style="display:flex;gap:30px;">`;
-        html += `<div style="flex:1;">`;
-        if (getCertData().length) {
-          html += `<div style="background:#0B132B;border-radius:6px;color:white;font-size:18px;text-align:center;padding:10px 0;margin-bottom:16px;">Certification</div>`;
-          getCertData().forEach(c => {
-            html += `<div style="border-left:2px solid #A0A0A0;padding-left:14px;margin-bottom:10px;">
-              <div style="display:flex;justify-content:space-between;font-size:16px;"><span>${c.name}</span> <span>${c.date || ''}</span></div>
-              ${c.org ? `<div style="font-size:14px;">${c.org}</div>` : ''}
-            </div>`;
-          });
-        }
-        html += `</div>`;
-        html += `<div style="flex:1;">`;
-        if (getLangData().length) {
-          html += `<div style="background:#0B132B;border-radius:6px;color:white;font-size:18px;text-align:center;padding:10px 0;margin-bottom:16px;">Language’s</div>`;
-          getLangData().forEach(l => {
-            html += `<div style="border-left:2px solid #A0A0A0;padding-left:14px;display:flex;gap:12px;font-size:14px;margin-bottom:8px;">
-              <span>${l.name}</span> ${l.level ? `<span style="font-size:12px;">(${l.level})</span>` : ''}
-            </div>`;
-          });
-        }
-        html += `</div></div>`;
-        el.innerHTML = html;
-      }
-
-      // ── TEMPLATE 6 ──
-      if (templateNum === '6') {
-        const el = document.getElementById('prev-t6');
-        let html = `<div style="width:100%;height:100%;display:flex;background:#0B132B;">
-          <div style="width:280px;padding:40px 30px;position:relative;overflow:hidden;">
-             <div style="position:absolute;bottom:-100px;right:-150px;width:400px;height:400px;background:#0B132B;border-radius:50%;"></div>
-             ${photoBase64 ? `<img src="${photoBase64}" style="width:200px;height:200px;object-fit:cover;border-radius:50%;position:relative;z-index:1;">` : ''}
-             <div style="margin-top:40px;position:relative;z-index:1;">
-                ${[email, phone, location].filter(Boolean).map(c => `<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;color:white;">
-                  <div style="width:24px;height:24px;background:#ddd;border-radius:50%;"></div>
-                  <div style="font-size:12px;">${c}</div>
-                </div>`).join('')}
-             </div>
-             ${getLangData().length ? `<div style="margin-top:20px;position:relative;z-index:1;">
-                <div style="font-size:18px;color:white;margin-bottom:12px;">Language's</div>
-                ${getLangData().map(l => `<div style="display:flex;justify-content:space-between;font-size:14px;color:white;margin-bottom:8px;"><span>${l.name}</span><span style="opacity:0.8;">${l.level ? `(${l.level})` : ''}</span></div>`).join('')}
-             </div>` : ''}
-             ${fmtSkills().length ? `<div style="margin-top:20px;position:relative;z-index:1;">
-                <div style="font-size:18px;color:white;margin-bottom:12px;">Skills</div>
-                ${fmtSkills().map(s => `<div style="display:flex;gap:8px;font-size:14px;color:white;margin-bottom:4px;"><span>•</span><span>${s}</span></div>`).join('')}
-             </div>` : ''}
-          </div>
-          <div style="flex:1;padding:40px 30px;">
-             <div style="text-align:right;margin-bottom:40px;">
-                <div style="font-family:'Playfair Display',serif;font-size:36px;font-weight:700;text-transform:uppercase;margin-bottom:4px;">${name}</div>
-                <div style="font-size:18px;">${jobtitle}</div>
-             </div>
-             ${summary ? `<div style="font-size:16px;line-height:1.45;margin-bottom:30px;">${summary}</div>` : ''}
-             
-             ${getEduData().length ? `<div style="margin-bottom:20px;">
-               <div style="display:flex;align-items:center;gap:10px;border-bottom:2px solid #ddd;padding-bottom:4px;margin-bottom:16px;">
-                 <div style="font-size:20px;font-weight:bold;">Education</div>
-               </div>
-               ${getEduData().map(e => `<div style="margin-bottom:16px;">
-                 <div style="display:flex;justify-content:space-between;font-size:16px;margin-bottom:4px;"><span>${e.school}</span> <span>${e.year}</span></div>
-                 ${e.course ? `<div style="font-size:14px;">${e.course}</div>` : ''}
-               </div>`).join('')}
-             </div>` : ''}
-
-             ${getWorkData().length ? `<div style="margin-bottom:20px;">
-               <div style="display:flex;align-items:center;gap:10px;border-bottom:2px solid #ddd;padding-bottom:4px;margin-bottom:16px;">
-                 <div style="font-size:20px;font-weight:bold;">Work Experience’s</div>
-               </div>
-               ${getWorkData().map(w => `<div style="margin-bottom:16px;">
-                 <div style="display:flex;justify-content:space-between;font-size:16px;margin-bottom:6px;"><span>${w.title} ${w.company ? ' - ' + w.company : ''}</span> <span>${w.duration}</span></div>
-                 ${w.desc ? `<div style="font-size:14px;line-height:1.4;">${w.desc.split('\n').map(line => `<div style="display:flex;gap:8px;margin-bottom:2px;"><span>•</span><span>${line}</span></div>`).join('')}</div>` : ''}
-               </div>`).join('')}
-             </div>` : ''}
-          </div>
-        </div>`;
-        el.innerHTML = html;
-      }
-
-      // ── TEMPLATE 7 ──
-      if (templateNum === '7') {
-        const el = document.getElementById('prev-t7');
-        let html = `<div style="position:absolute;left:-100px;top:-100px;width:300px;height:300px;background:#2F4C32;border-radius:50%;"></div>
-        ${photoBase64 ? `<img src="${photoBase64}" style="position:absolute;left:40px;top:40px;width:160px;height:160px;border-radius:50%;object-fit:cover;">` : ''}
-        <div style="position:absolute;left:230px;top:40px;width:520px;">
-          <div style="font-family:'Playfair Display',serif;font-size:36px;font-weight:700;text-transform:uppercase;margin-bottom:6px;">${name}</div>
-          <div style="font-size:18px;margin-bottom:16px;">${jobtitle}</div>
-          ${summary ? `<div style="font-size:14px;line-height:1.5;">${summary}</div>` : ''}
-        </div>
-        <div style="position:absolute;left:0;top:280px;width:100%;height:2px;background:#111;"></div>
-        
-        <div style="position:absolute;left:50px;top:310px;width:240px;">
-           ${[email, phone, location].filter(Boolean).map(c => `<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
-             <div style="width:30px;height:30px;background:#ccc;border-radius:50%;"></div>
-             <div style="font-size:12px;margin-top:4px;">${c}</div>
-           </div>`).join('')}
-           ${fmtSkills().length ? `<div style="font-size:20px;font-weight:bold;margin:30px 0 14px;">Skills</div>
-             ${fmtSkills().map(s => `<div style="display:flex;gap:8px;font-size:14px;margin-bottom:4px;"><span>•</span><span>${s}</span></div>`).join('')}` : ''}
-           ${getLangData().length ? `<div style="font-size:20px;font-weight:bold;margin:30px 0 14px;">Language's</div>
-             ${getLangData().map(l => `<div style="font-size:14px;margin-bottom:8px;"><span>${l.name}</span> <span style="font-size:12px;">${l.level ? `(${l.level})` : ''}</span></div>`).join('')}` : ''}
-        </div>
-        <div style="position:absolute;left:310px;top:310px;width:2px;height:780px;background:#111;"></div>
-        
-        <div style="position:absolute;left:340px;top:310px;width:420px;">
-           ${getEduData().length ? `<div style="text-align:center;margin-bottom:20px;"><div style="font-size:20px;font-weight:bold;border-bottom:2px solid #2F4C32;display:inline-block;padding-bottom:4px;">Education</div></div>
-             ${getEduData().map(e => `<div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;font-size:16px;margin-bottom:2px;"><span>${e.school}</span><span>${e.year}</span></div>${e.course ? `<div style="font-size:14px;">${e.course}</div>` : ''}</div>`).join('')}` : ''}
-           ${getWorkData().length ? `<div style="text-align:center;margin:20px 0;"><div style="font-size:20px;font-weight:bold;border-bottom:2px solid #2F4C32;display:inline-block;padding-bottom:4px;">Work Experience's</div></div>
-             ${getWorkData().map(w => `<div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;font-size:16px;margin-bottom:6px;"><span>${w.title} ${w.company ? '| ' + w.company : ''}</span><span>${w.duration}</span></div>${w.desc ? `<div style="font-size:14px;line-height:1.4;">${w.desc.split('\n').map(line => `<div style="display:flex;gap:8px;margin-bottom:2px;"><span>•</span><span>${line}</span></div>`).join('')}</div>` : ''}</div>`).join('')}` : ''}
-        </div>
-        <div style="position:absolute;left:544px;top:823px;width:400px;height:400px;background:#2F4C32;border-radius:50%;opacity:0.9;"></div>`;
-        el.innerHTML = html;
-      }
-
-      // ── TEMPLATE 8 ──
-      if (templateNum === '8') {
-        const el = document.getElementById('prev-t8');
-        let html = `<div style="position:absolute;left:0;top:0;width:280px;height:100%;">
-          <div style="position:absolute;top:0;left:0;width:100%;height:55%;background:#3A5F3E;"></div>
-          <div style="position:absolute;bottom:0;left:0;width:100%;height:45%;background:#D6E4D6;"></div>
-        </div>
-        ${photoBase64 ? `<img src="${photoBase64}" style="position:absolute;left:40px;top:40px;width:200px;height:200px;border-radius:50%;object-fit:cover;">` : ''}
-        
-        <div style="position:absolute;left:30px;top:280px;width:220px;">
-           ${[email, phone, location].filter(Boolean).map(c => `<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:20px;"><div style="width:36px;height:36px;background:rgba(255,255,255,0.2);border-radius:50%;"></div><div style="font-size:12px;color:white;margin-top:6px;">${c}</div></div>`).join('')}
-           ${fmtSkills().length ? `<div style="font-size:20px;font-weight:bold;color:#3A5F3E;margin:20px 0 14px;">Skills</div>
-             ${fmtSkills().map(s => `<div style="display:flex;gap:8px;font-size:14px;margin-bottom:4px;"><span>•</span><span>${s}</span></div>`).join('')}` : ''}
-           ${getLangData().length ? `<div style="font-size:20px;font-weight:bold;color:#3A5F3E;margin:20px 0 14px;">Language's</div>
-             ${getLangData().map(l => `<div style="font-size:14px;margin-bottom:8px;"><span>${l.name}</span> <span style="font-size:12px;">${l.level ? `(${l.level})` : ''}</span></div>`).join('')}` : ''}
-        </div>
-
-        <div style="position:absolute;left:300px;top:40px;width:460px;">
-           <div style="text-align:right;margin-bottom:40px;">
-              <div style="font-family:'Playfair Display',serif;font-size:36px;font-weight:700;text-transform:uppercase;margin-bottom:4px;">${name}</div>
-              <div style="font-size:18px;">${jobtitle}</div>
-           </div>
-           ${summary ? `<div style="margin-bottom:20px;"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;"><div style="width:50px;height:50px;background:#E5E5E5;border-radius:50%;"></div><div style="font-size:20px;font-weight:bold;border-bottom:2px solid #111;padding-bottom:4px;width:100%;">About Me</div></div><div style="font-size:14px;line-height:1.45;margin-bottom:30px;">${summary}</div></div>` : ''}
-           
-           ${getEduData().length ? `<div style="margin-bottom:20px;"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;"><div style="width:50px;height:50px;background:#E5E5E5;border-radius:50%;"></div><div style="font-size:20px;font-weight:bold;border-bottom:2px solid #111;padding-bottom:4px;width:100%;">Education</div></div>
-             ${getEduData().map(e => `<div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;font-size:16px;margin-bottom:4px;"><span>${e.school}</span><span>${e.year}</span></div>${e.course ? `<div style="font-size:14px;">${e.course}</div>` : ''}</div>`).join('')}</div>` : ''}
-
-           ${getWorkData().length ? `<div style="margin-bottom:20px;"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;"><div style="width:50px;height:50px;background:#E5E5E5;border-radius:50%;"></div><div style="font-size:20px;font-weight:bold;border-bottom:2px solid #111;padding-bottom:4px;width:100%;">Work Experience's</div></div>
-             ${getWorkData().map(w => `<div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;font-size:16px;margin-bottom:6px;"><span>${w.title} ${w.company ? '| ' + w.company : ''}</span><span>${w.duration}</span></div>${w.desc ? `<div style="font-size:14px;line-height:1.4;">${w.desc.split('\n').map(line => `<div style="display:flex;gap:8px;margin-bottom:2px;"><span>•</span><span>${line}</span></div>`).join('')}</div>` : ''}</div>`).join('')}</div>` : ''}
-        </div>`;
-        el.innerHTML = html;
-      }
-
-      // ── TEMPLATE 9 ──
-      if (templateNum === '9') {
-        const el = document.getElementById('prev-t9');
-        let html = `<div style="position:absolute;left:0;top:0;width:260px;height:100%;background:#E8E8E8;"></div>
-        <div style="position:absolute;left:0;top:0;width:60px;height:160px;background:#6A4766;"></div>
-        ${photoBase64 ? `<img src="${photoBase64}" style="position:absolute;left:50px;top:50px;width:160px;height:160px;object-fit:cover;">` : ''}
-        <div style="position:absolute;left:80px;top:230px;width:100px;height:6px;background:#6A4766;"></div>
-        
-        <div style="position:absolute;left:30px;top:270px;width:200px;">
-           ${[email, phone, location].filter(Boolean).map(c => `<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:20px;"><div style="width:30px;height:30px;background:#999;border-radius:50%;"></div><div style="font-size:12px;margin-top:4px;">${c}</div></div>`).join('')}
-           ${fmtSkills().length ? `<div style="font-size:20px;font-weight:bold;margin:30px 0 14px;text-align:center;">Skills</div>
-             ${fmtSkills().map(s => `<div style="display:flex;gap:8px;font-size:14px;margin-bottom:4px;"><span>•</span><span>${s}</span></div>`).join('')}` : ''}
-           ${getLangData().length ? `<div style="font-size:20px;font-weight:bold;margin:30px 0 14px;text-align:center;">Language's</div>
-             ${getLangData().map(l => `<div style="font-size:14px;margin-bottom:8px;text-align:center;"><span>${l.name}</span> <span style="font-size:12px;">${l.level ? `(${l.level})` : ''}</span></div>`).join('')}` : ''}
-        </div>
-
-        <div style="position:absolute;left:260px;top:0;width:534px;height:135px;background:#6A4766;"></div>
-        <div style="position:absolute;left:260px;top:135px;width:534px;padding:30px 40px;">
-           <div style="text-align:center;margin-bottom:30px;">
-              <div style="font-family:'Playfair Display',serif;font-size:34px;font-weight:700;text-transform:uppercase;margin-bottom:4px;">${name}</div>
-              <div style="font-size:16px;">${jobtitle}</div>
-           </div>
-           ${summary ? `<div style="font-size:16px;line-height:1.45;text-align:center;margin-bottom:40px;">${summary}</div>` : ''}
-           ${getEduData().length ? `<div style="text-align:center;margin-bottom:16px;"><div style="font-size:20px;font-weight:bold;">Education</div></div>
-             ${getEduData().map(e => `<div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;font-size:16px;margin-bottom:4px;"><span>${e.school}</span><span>${e.year}</span></div>${e.course ? `<div style="font-size:14px;">${e.course}</div>` : ''}</div>`).join('')}` : ''}
-        </div>
-
-        <div style="position:absolute;left:260px;top:480px;width:534px;height:240px;background:#6A4766;"></div>
-        <div style="position:absolute;left:260px;top:480px;width:534px;padding:0 40px;">
-           ${getWorkData().length ? `<div style="text-align:center;margin-bottom:16px;margin-top:20px;"><div style="font-size:20px;font-weight:bold;">Work Experience's</div></div>
-             ${getWorkData().map(w => `<div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;font-size:16px;margin-bottom:6px;"><span>${w.title} ${w.company ? '| ' + w.company : ''}</span><span>${w.duration}</span></div>${w.desc ? `<div style="font-size:14px;line-height:1.4;">${w.desc.split('\n').map(line => `<div style="display:flex;gap:8px;margin-bottom:2px;"><span>•</span><span>${line}</span></div>`).join('')}</div>` : ''}</div>`).join('')}` : ''}
-        </div>
-
-        <div style="position:absolute;left:260px;top:720px;width:534px;padding:30px 40px;">
-           ${getAwardData().length ? `<div style="text-align:center;margin-bottom:16px;"><div style="font-size:20px;font-weight:bold;">Awards and Achievement</div></div>
-             ${getAwardData().map(a => `<div style="display:flex;justify-content:space-between;font-size:16px;margin-bottom:12px;"><span>${a.name} ${a.issuer ? '<br><span style="font-size:12px;">' + a.issuer + '</span>' : ''}</span><span>${a.year}</span></div>`).join('')}` : ''}
-           ${getCertData().length ? `<div style="text-align:center;margin:20px 0 16px;"><div style="font-size:20px;font-weight:bold;">Certification</div></div>
-             ${getCertData().map(c => `<div style="display:flex;justify-content:space-between;font-size:16px;margin-bottom:8px;"><span>${c.name}</span><span>${c.date}</span></div>${c.org ? `<div style="font-size:12px;margin-bottom:12px;">${c.org}</div>` : ''}`).join('')}` : ''}
-        </div>`;
-        el.innerHTML = html;
-      }
-
-      // ── TEMPLATE 10 ──
-      if (templateNum === '10') {
-        const el = document.getElementById('prev-t10');
-        let html = `<div style="position:absolute;left:0;top:0;width:100%;height:150px;background:#1C291C;"></div>
-        ${photoBase64 ? `<img src="${photoBase64}" style="position:absolute;left:40px;top:25px;width:100px;height:100px;border-radius:50%;object-fit:cover;">` : ''}
-        <div style="position:absolute;left:150px;top:40px;width:600px;text-align:right;">
-           <div style="font-family:'Playfair Display',serif;font-size:34px;font-weight:700;color:white;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;">${name}</div>
-           <div style="font-size:16px;color:#D1D5DB;">${jobtitle}</div>
-        </div>
-        <div style="position:absolute;left:0;top:150px;width:100%;height:40px;background:#EAEAEA;display:flex;justify-content:space-around;align-items:center;font-size:12px;">
-           ${[email, phone, location].filter(Boolean).map(c => `<div>${c}</div>`).join('')}
-        </div>
-        <div style="position:absolute;left:260px;top:190px;width:2px;height:933px;background:#111;"></div>
-        <div style="position:absolute;left:0;top:480px;width:100%;height:2px;background:#111;"></div>
-        <div style="position:absolute;left:0;top:720px;width:100%;height:2px;background:#111;"></div>
-        <div style="position:absolute;left:0;top:860px;width:100%;height:2px;background:#111;"></div>
-        
-        <div style="position:absolute;left:0;top:190px;width:260px;padding:20px;">
-           ${getLangData().length ? `<div style="text-align:center;font-size:20px;font-weight:bold;margin-bottom:16px;">Language's</div>
-             ${getLangData().map(l => `<div style="font-size:14px;margin-bottom:10px;"><span>${l.name}</span> <span style="font-size:12px;">${l.level ? `(${l.level})` : ''}</span></div>`).join('')}` : ''}
-        </div>
-        <div style="position:absolute;left:260px;top:190px;width:534px;padding:20px 40px;">
-           ${summary ? `<div style="font-size:16px;line-height:1.5;text-align:justify;">${summary}</div>` : ''}
-        </div>
-        
-        <div style="position:absolute;left:0;top:480px;width:260px;padding:20px;">
-           ${getEduData().length ? `<div style="text-align:center;font-size:20px;font-weight:bold;margin-bottom:16px;">Education</div>` : ''}
-        </div>
-        <div style="position:absolute;left:260px;top:480px;width:534px;padding:30px 40px;">
-           ${getEduData().length ? `${getEduData().map(e => `<div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;font-size:16px;margin-bottom:4px;"><span>${e.school}</span><span>${e.year}</span></div>${e.course ? `<div style="font-size:14px;">${e.course}</div>` : ''}</div>`).join('')}` : ''}
-        </div>
-
-        <div style="position:absolute;left:0;top:720px;width:260px;padding:20px;">
-           ${getWorkData().length ? `<div style="text-align:center;font-size:20px;font-weight:bold;margin-bottom:16px;">Experience's</div>` : ''}
-        </div>
-        <div style="position:absolute;left:260px;top:720px;width:534px;padding:30px 40px;">
-           ${getWorkData().length ? `${getWorkData().map(w => `<div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;font-size:16px;margin-bottom:6px;"><span>${w.title} ${w.company ? '| ' + w.company : ''}</span><span>${w.duration}</span></div>${w.desc ? `<div style="font-size:14px;line-height:1.4;">${w.desc.split('\n').map(line => `<div style="display:flex;gap:8px;margin-bottom:2px;"><span>•</span><span>${line}</span></div>`).join('')}</div>` : ''}</div>`).join('')}` : ''}
-        </div>
-
-        <div style="position:absolute;left:0;top:860px;width:260px;padding:20px;">
-           ${getAwardData().length ? `<div style="text-align:center;font-size:20px;font-weight:bold;margin-bottom:16px;">Achievement</div>` : ''}
-        </div>
-        <div style="position:absolute;left:260px;top:860px;width:534px;padding:30px 40px;">
-           ${getAwardData().length ? `${getAwardData().map(a => `<div style="display:flex;justify-content:space-between;font-size:16px;margin-bottom:12px;"><span>${a.name} ${a.issuer ? '<br><span style="font-size:12px;">' + a.issuer + '</span>' : ''}</span><span>${a.year}</span></div>`).join('')}` : ''}
-        </div>
-
-        <div style="position:absolute;left:0;top:880px;width:100%;height:243px;display:flex;">
-           <div style="flex:1;padding:30px 20px;text-align:center;">
-              ${fmtSkills().length ? `<div style="font-size:20px;font-weight:bold;margin-bottom:16px;">Skills</div><div style="text-align:left;padding-left:20px;">${fmtSkills().map(s => `<div style="display:flex;gap:8px;font-size:14px;margin-bottom:4px;"><span>•</span><span>${s}</span></div>`).join('')}</div>` : ''}
-           </div>
-           <div style="flex:1;padding:30px 40px;text-align:center;">
-              ${getCertData().length ? `<div style="font-size:20px;font-weight:bold;margin-bottom:16px;">Certification</div>${getCertData().map(c => `<div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px;text-align:left;"><span style="font-weight:bold;">${c.name}</span><span>${c.date}</span></div>${c.org ? `<div style="font-size:12px;text-align:left;margin-bottom:12px;">${c.org}</div>` : ''}`).join('')}` : ''}
-           </div>
-        </div>`;
-        el.innerHTML = html;
-      }
-
-      // ── TEMPLATE 11 ──
-      if (templateNum === '11') {
-        const el = document.getElementById('prev-t11');
-        let html = `<div style="position:absolute;left:0;top:0;width:280px;height:100%;background:#243424;"></div>
-        <div style="position:absolute;left:280px;top:0;width:514px;height:180px;background:white;display:flex;align-items:center;justify-content:flex-end;padding-right:40px;">
-           <div style="text-align:right;">
-              <div style="font-family:'Playfair Display',serif;font-size:34px;font-weight:700;text-transform:uppercase;margin-bottom:6px;">${name}</div>
-              <div style="font-size:16px;">${jobtitle}</div>
-           </div>
-        </div>
-        <div style="position:absolute;left:280px;top:180px;width:514px;height:12px;background:#243424;"></div>
-        <div style="position:absolute;left:0;top:192px;width:100%;border-bottom:2px solid #243424;"></div>
-        ${photoBase64 ? `<img src="${photoBase64}" style="position:absolute;left:40px;top:40px;width:200px;height:200px;border-radius:50%;object-fit:cover;">` : ''}
-        
-        <div style="position:absolute;left:30px;top:280px;width:220px;">
-           ${[email, phone, location].filter(Boolean).map(c => `<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:20px;"><div style="width:36px;height:36px;background:#D1D5DB;border-radius:50%;"></div><div style="font-size:12px;color:white;margin-top:6px;">${c}</div></div>`).join('')}
-           ${getLangData().length ? `<div style="font-size:20px;font-weight:bold;color:white;margin:30px 0 14px;">Language's</div>
-             ${getLangData().map(l => `<div style="font-size:14px;color:white;margin-bottom:8px;"><span>${l.name}</span> <span style="font-size:12px;opacity:0.7;">${l.level ? `(${l.level})` : ''}</span></div>`).join('')}` : ''}
-           ${fmtSkills().length ? `<div style="font-size:20px;font-weight:bold;color:white;margin:30px 0 14px;">Skills</div>
-             ${fmtSkills().map(s => `<div style="display:flex;gap:8px;font-size:14px;color:white;margin-bottom:4px;"><span>•</span><span>${s}</span></div>`).join('')}` : ''}
-        </div>
-        
-        <div style="position:absolute;left:310px;top:220px;width:460px;">
-           ${summary ? `<div style="font-size:16px;line-height:1.45;margin-bottom:30px;">${summary}</div>` : ''}
-           ${getEduData().length ? `<div style="display:flex;align-items:center;gap:10px;border-bottom:2px solid #243424;padding-bottom:4px;margin-bottom:16px;"><div style="font-size:20px;font-weight:bold;">Education</div></div>
-             ${getEduData().map(e => `<div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;font-size:16px;margin-bottom:4px;"><span>${e.school}</span><span>${e.year}</span></div>${e.course ? `<div style="font-size:14px;">${e.course}</div>` : ''}</div>`).join('')}` : ''}
-           ${getWorkData().length ? `<div style="display:flex;align-items:center;gap:10px;border-bottom:2px solid #243424;padding-bottom:4px;margin:20px 0 16px;"><div style="font-size:20px;font-weight:bold;">Work Experience's</div></div>
-             ${getWorkData().map(w => `<div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;font-size:16px;margin-bottom:6px;"><span>${w.title} ${w.company ? '| ' + w.company : ''}</span><span>${w.duration}</span></div>${w.desc ? `<div style="font-size:14px;line-height:1.4;">${w.desc.split('\n').map(line => `<div style="display:flex;gap:8px;margin-bottom:2px;"><span>•</span><span>${line}</span></div>`).join('')}</div>` : ''}</div>`).join('')}` : ''}
-           ${getAwardData().length ? `<div style="display:flex;align-items:center;gap:10px;border-bottom:2px solid #243424;padding-bottom:4px;margin:20px 0 16px;"><div style="font-size:20px;font-weight:bold;">Awards and Achievement</div></div>
-             ${getAwardData().map(a => `<div style="display:flex;justify-content:space-between;font-size:16px;margin-bottom:12px;"><span>${a.name} ${a.issuer ? '<br><span style="font-size:12px;">' + a.issuer + '</span>' : ''}</span><span>${a.year}</span></div>`).join('')}` : ''}
-           ${getCertData().length ? `<div style="display:flex;align-items:center;gap:10px;border-bottom:2px solid #243424;padding-bottom:4px;margin:20px 0 16px;"><div style="font-size:20px;font-weight:bold;">Certification</div></div>
-             ${getCertData().map(c => `<div style="margin-bottom:16px;"><div style="font-size:16px;font-weight:bold;">${c.name}</div>${c.org ? `<div style="font-size:14px;">${c.org}</div>` : ''}${c.date ? `<div style="font-size:14px;">${c.date}</div>` : ''}</div>`).join('')}` : ''}
-        </div>`;
-        el.innerHTML = html;
-      }
-
-      // ── TEMPLATE 12 ──
-      if (templateNum === '12') {
-        const el = document.getElementById('prev-t12');
-        let html = `<div style="position:absolute;left:0;top:0;width:100%;height:100px;background:#4A3B32;display:flex;align-items:center;justify-content:center;color:white;">
-           <div style="font-family:'Playfair Display',serif;font-size:34px;font-weight:700;text-transform:uppercase;letter-spacing:2px;">${name} ${jobtitle ? '- ' + jobtitle : ''}</div>
-        </div>
-        <div style="position:absolute;left:0;top:100px;width:100%;height:40px;background:#7A6353;display:flex;justify-content:center;align-items:center;gap:30px;color:white;font-size:12px;">
-           ${[email, location, phone].filter(Boolean).map(c => `<div>${c}</div>`).join('')}
-        </div>
-        <div style="position:absolute;left:0;top:140px;width:100%;height:40px;background:#9C826E;display:flex;justify-content:space-around;align-items:center;color:white;font-size:14px;">
-           ${fmtSkills().map(s => `<div>${s}</div>`).join('')}
-        </div>
-        <div style="position:absolute;left:50px;top:200px;width:694px;">
-           ${summary ? `<div style="font-size:16px;line-height:1.5;margin-bottom:20px;">${summary}</div>` : ''}
-           <div style="width:100%;height:2px;background:#111;margin:20px 0;"></div>
-           ${getLangData().length ? `<div style="display:flex;gap:40px;margin-bottom:20px;"><div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:bold;color:#4A3B32;width:150px;">Language's</div>${getLangData().map(l => `<div style="font-size:14px;"><span>${l.name}</span> <span style="font-size:12px;">${l.level ? `(${l.level})` : ''}</span></div>`).join('')}</div>` : ''}
-           <div style="width:100%;height:2px;background:#111;margin:20px 0;"></div>
-           ${getWorkData().length ? `<div style="margin-bottom:20px;"><div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:bold;color:#4A3B32;margin-bottom:16px;">Work Experience's</div>${getWorkData().map(w => `<div style="margin-bottom:24px;"><div style="display:flex;justify-content:space-between;font-size:16px;margin-bottom:8px;"><span style="width:180px;">${w.company}</span><span style="flex:1;">${w.title}</span><span>${w.duration}</span></div>${w.desc ? `<div style="font-size:14px;line-height:1.5;padding-left:180px;">${w.desc.replace(/\n/g, '<br>')}</div>` : ''}</div>`).join('')}</div>` : ''}
-           <div style="width:100%;height:2px;background:#111;margin:20px 0;"></div>
-           ${getEduData().length ? `<div style="margin-bottom:20px;"><div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:bold;color:#4A3B32;margin-bottom:16px;">Education</div>${getEduData().map(e => `<div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;font-size:16px;margin-bottom:4px;"><span>${e.school}</span><span>${e.year}</span></div>${e.course ? `<div style="font-size:14px;">${e.course}</div>` : ''}</div>`).join('')}</div>` : ''}
-           <div style="width:100%;height:2px;background:#111;margin:20px 0;"></div>
-           <div style="display:flex;gap:40px;">
-             <div style="flex:1;">
-               ${getAwardData().length ? `<div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:bold;color:#4A3B32;margin-bottom:16px;">Awards and Achievement</div>${getAwardData().map(a => `<div style="margin-bottom:12px;font-size:14px;"><div>${a.name}</div>${a.issuer ? `<div>${a.issuer}</div>` : ''}${a.year ? `<div>${a.year}</div>` : ''}</div>`).join('')}` : ''}
-             </div>
-             <div style="flex:1;">
-               ${getCertData().length ? `<div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:bold;color:#4A3B32;margin-bottom:16px;text-align:center;">Certification</div>${getCertData().map(c => `<div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px;"><span style="font-weight:bold;">${c.name}</span><span>${c.date}</span></div>${c.org ? `<div style="font-size:12px;margin-bottom:12px;">${c.org}</div>` : ''}`).join('')}` : ''}
-             </div>
-           </div>
-        </div>`;
-        el.innerHTML = html;
-      }
+      // ── TEMPLATES 5-12: drawn by the SAME renderer as the built resume (templateN.js) ──
+      if (parseInt(templateNum) >= 5) renderTemplatePreview()
 
       saveDraft()
     }
@@ -2128,8 +1801,8 @@
       localStorage.setItem('profile_form_data', JSON.stringify(formData))
       localStorage.setItem('profile_form_draft_t' + templateNum, JSON.stringify(formData))
 
-      localStorage.setItem('profile_accent_dark', window.currentAccentDark || TEMPLATE_DEFAULTS[templateNum].dark)
-      localStorage.setItem('profile_accent_light', window.currentAccentLight || TEMPLATE_DEFAULTS[templateNum].light)
+      localStorage.setItem('profile_accent_dark_t' + templateNum, window.currentAccentDark || TEMPLATE_DEFAULTS[templateNum].dark)
+      localStorage.setItem('profile_accent_light_t' + templateNum, window.currentAccentLight || TEMPLATE_DEFAULTS[templateNum].light)
 
       const token = localStorage.getItem('profile_token')
       if (token) {
@@ -2180,6 +1853,13 @@
       '12': 'Brown Full-Width'
     }
     document.getElementById('templateLabel').textContent = templateNames[templateNum] || 'Classic Sidebar'
+
+    if (parseInt(templateNum) >= 5) {
+      const s = document.createElement('script')
+      s.src = 'template' + templateNum + '.js'
+      s.onload = () => updatePreview()
+      document.head.appendChild(s)
+    }
 
     loadSavedForm()
 
