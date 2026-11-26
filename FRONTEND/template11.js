@@ -2,9 +2,16 @@ initResumeEditor({
     templateNum: 11,
     storageKey: 'profile_canvas_state_t11',
     renderFromFormData({ data, buildHtmlElement, buildImageElement }) {
-        const fontSize = Math.min(Math.max(parseFloat(data.fontSize) || 12, 9), 14)
+        const fontSize = Math.min(Math.max(parseFloat(data.fontSize) || 12, 9), 15)
         const accent = data.accentDark || '#243424'
         const esc = v => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+        // Custom sections added in the form (each: { name, entries: [text, ...] })
+        const customHTML = headFn => (data.customSections || []).map(sec => {
+            const items = (sec.entries || []).filter(e => e && String(e).trim())
+            if (!items.length) return ''
+            return headFn(esc(sec.name)) + items.map(i => `<div style="display:flex;gap:8px;margin-bottom:3px;font-size:${fontSize + 1}px;line-height:1.35;"><span>•</span><span>${esc(i)}</span></div>`).join('') + `<div style="height:10px;"></div>`
+        }).join('')
 
         buildHtmlElement({ left: 0, top: 0, width: 280, html: `<div style="width:280px;height:1123px;background:${accent};"></div>` })
         buildHtmlElement({
@@ -91,6 +98,7 @@ initResumeEditor({
           ${c.org ? `<div style="font-size:${fontSize + 1}px;">${esc(c.org)}</div>` : ''}</div>`
             })
         }
+        main += customHTML(head)
         main += `</div>`
         buildHtmlElement({ left: 280, top: 214, width: 514, html: main })
     }

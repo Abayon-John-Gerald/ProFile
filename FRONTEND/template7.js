@@ -2,9 +2,16 @@ initResumeEditor({
     templateNum: 7,
     storageKey: 'profile_canvas_state_t7',
     renderFromFormData({ data, buildHtmlElement, buildImageElement }) {
-        const fontSize = Math.min(Math.max(parseFloat(data.fontSize) || 12, 9), 14)
+        const fontSize = Math.min(Math.max(parseFloat(data.fontSize) || 12, 9), 15)
         const accent = data.accentDark || '#2F4C32'
         const esc = v => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+        // Custom sections added in the form (each: { name, entries: [text, ...] })
+        const customHTML = headFn => (data.customSections || []).map(sec => {
+            const items = (sec.entries || []).filter(e => e && String(e).trim())
+            if (!items.length) return ''
+            return headFn(esc(sec.name)) + items.map(i => `<div style="display:flex;gap:8px;margin-bottom:3px;font-size:${fontSize + 1}px;line-height:1.35;"><span>•</span><span>${esc(i)}</span></div>`).join('') + `<div style="height:10px;"></div>`
+        }).join('')
 
         // Decorative circles first so they sit BEHIND all text
         buildHtmlElement({ left: 544, top: 823, width: 400, html: `<div style="width:400px;height:400px;background:${accent};border-radius:50%;opacity:0.9;"></div>` })
@@ -89,6 +96,7 @@ initResumeEditor({
           ${c.date ? `<div style="font-size:${fontSize + 1}px;">${esc(c.date)}</div>` : ''}</div>`
             })
         }
+        main += customHTML(secHead)
         main += `</div>`
         buildHtmlElement({ left: 340, top: 300, width: 420, html: main })
     }
